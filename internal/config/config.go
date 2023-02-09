@@ -22,7 +22,8 @@ type ServerConfig struct {
 }
 
 type OHLCConfig struct {
-	DiscardInCompleteRow bool
+	DiscardInCompleteRow  bool
+	DefaultDataPointLimit int
 }
 
 func Init() *Config {
@@ -39,7 +40,8 @@ func Init() *Config {
 			Port: util.GetInt("SERVER_PORT", 8090),
 		},
 		OHLCConfig: OHLCConfig{
-			DiscardInCompleteRow: util.GetBool("OHLC_DISCARD_INCOMPLETE_ROW", false),
+			DiscardInCompleteRow:  util.GetBool("OHLC_DISCARD_INCOMPLETE_ROW", false),
+			DefaultDataPointLimit: util.GetInt("OHLC_DATA_POINT_LIMIT", 100),
 		},
 	}
 

@@ -10,6 +10,7 @@ import (
 	"github.com/teezzan/ohlc/internal/controller/ohlc/data"
 	"github.com/teezzan/ohlc/internal/controller/ohlc/repository"
 	E "github.com/teezzan/ohlc/internal/errors"
+	"github.com/teezzan/ohlc/internal/null"
 	"go.uber.org/zap"
 )
 
@@ -19,6 +20,7 @@ type DefaultService struct {
 	logger               *zap.Logger
 	repository           repository.Repository
 	discardInCompleteRow bool
+	defaulDataPointLimit int
 }
 
 func NewService(
@@ -30,6 +32,7 @@ func NewService(
 		logger:               logger,
 		repository:           repository,
 		discardInCompleteRow: ohlcConf.DiscardInCompleteRow,
+		defaulDataPointLimit: ohlcConf.DefaultDataPointLimit,
 	}
 }
 
@@ -150,4 +153,35 @@ func getOHLCPoint(row []string, fieldIndexes data.OHLCFieldIndexes) (*data.OHLCE
 	}
 
 	return &d, nil
+}
+
+// GetOHLCPoints returns OHLC points for a given symbol and time range
+func (s *DefaultService) GetOHLCPoints(ctx context.Context, payload data.GetOHLCRequest) ([]data.OHLCEntity, error) {
+	if payload.Symbol == "" {
+		return nil, E.NewErrInvalidArgument("symbol is required")
+	}
+	if payload.StartTime.IsZero() {
+		return nil, E.NewErrInvalidArgument("from is required")
+	}
+	if payload.EndTime.Valid && payload.EndTime.Time.Before(payload.StartTime) {
+		return nil, E.NewErrInvalidArgument("to must be greater than from")
+	}
+	if payload.PageSize.Valid && payload.PageSize.Int64 <= 0 {
+		return nil, E.NewErrInvalidArgument("page size must be greater than 0")
+	}
+	if payload.PageNumber.Valid && payload.PageNumber.Int64 <= 0 {
+		return nil, E.NewErrInvalidArgument("page number must be greater than 0")
+	}
+
+	if !payload.PageSize.Valid {
+		payload.PageSize = null.NewInt(s.defaulDataPointLimit)
+	}
+	if !payload.PageNumber.Valid {
+		payload.PageNumber = null.NewInt(1)
+	}
+	if !payload.EndTime.Valid {
+		payload.EndTime.Time = time.Now()
+	}
+	// calculate offset
+	return s.repository.GetOHLCPoints(ctx, payload)
 }

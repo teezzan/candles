@@ -4,6 +4,7 @@ import (
 	"encoding/csv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/teezzan/ohlc/internal/controller/ohlc/data"
 	"github.com/teezzan/ohlc/internal/httputil"
 	"go.uber.org/zap"
 )
@@ -29,7 +30,7 @@ func NewHTTPHandler(
 func (h *HTTPHandler) SetupRouter(r *gin.RouterGroup) error {
 	handler := httputil.NewHandlerWrapper(h.logger)
 
-	r.POST("/", handler(h.processCSVHandler))
+	r.POST("/data", handler(h.processCSVHandler))
 
 	return nil
 }
@@ -58,4 +59,24 @@ func (h *HTTPHandler) processCSVHandler(c *gin.Context) error {
 	}
 
 	return httputil.OK(c, nil)
+}
+
+// getOHLCPointsHandler gets the OHLC points for the given time range.
+func (h *HTTPHandler) getOHLCPointsHandler(c *gin.Context) error {
+	var query data.GetOHLCRequest
+	if err := c.ShouldBindQuery(&query); err != nil {
+		return httputil.BadRequest(c, err)
+	}
+	dp, err := h.ohlcService.GetOHLCPoints(c, query)
+	if err != nil {
+		return err
+	}
+
+	var p = []data.OHLC{}
+	for _, point := range dp {
+		p = append(p, point.ToOHLC())
+	}
+
+	return httputil.OK(c, p)
+	return nil
 }

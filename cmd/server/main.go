@@ -36,12 +36,12 @@ func main() {
 	ohlcService := ohlc.NewService(zap.NewNop(), ohlcRepo, conf.OHLCConfig)
 
 	// HTTP Handlers
-	ohlcHandler := ohlc.NewHTTPHandler(zap.NewNop(), ohlcService)
+	ohlcHTTPHandler := ohlc.NewHTTPHandler(zap.NewNop(), ohlcService)
 
 	// Router
 	r := router.New(
-		dummyHandler,
-		ohlcHandler,
+		healthCheckHandlerFunc,
+		ohlcHTTPHandler,
 	)
 
 	err = r.SetupRouter(gin.Default())
@@ -53,6 +53,6 @@ func main() {
 	r.Run(fmt.Sprintf(":%d", conf.Server.Port))
 }
 
-func dummyHandler(c *gin.Context) {
-	c.String(http.StatusOK, "Hello World!")
+func healthCheckHandlerFunc(c *gin.Context) {
+	c.String(http.StatusOK, "Ok")
 }

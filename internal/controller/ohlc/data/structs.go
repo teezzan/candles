@@ -2,6 +2,8 @@ package data
 
 import (
 	"time"
+
+	"github.com/teezzan/ohlc/internal/null"
 )
 
 // Project defines the ohlc project DTO
@@ -74,4 +76,13 @@ type OHLCFieldIndexes struct {
 // IsInComplete returns true if the OHLCFieldIndexes is incomplete.
 func (c *OHLCFieldIndexes) IsInComplete() bool {
 	return c.Open.IsEmptyIndex() || c.High.IsEmptyIndex() || c.Low.IsEmptyIndex() || c.Close.IsEmptyIndex() || c.Symbol.IsEmptyIndex() || c.Unix.IsEmptyIndex()
+}
+
+// GetOHLCRequest defines the get ohlc request.
+type GetOHLCRequest struct {
+	Symbol     string    `form:"symbol"`
+	StartTime  time.Time `form:"from"`
+	EndTime    null.Time `form:"to"`
+	PageNumber null.Int  `form:"page"`
+	PageSize   null.Int  `form:"page_size"`
 }
