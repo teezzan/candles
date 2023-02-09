@@ -1,0 +1,35 @@
+version: "3.8"
+services:
+  ohlc-db:
+    image: mysql:8.0
+    environment:
+      - MYSQL_ROOT_PASSWORD=mysqltest
+      - MYSQL_DATABASE=ohlc
+    expose:
+      - "3306"
+    ports:
+      - "3306:3306"
+  ohlc:
+    build: .
+    depends_on:
+      - ohlc-db
+    ports:
+      - "8090:8090"
+    entrypoint:
+     [
+       "./await",
+       "-vv",
+       "mysql://root:mysqltest@ohlc-db:3306/ohlc",
+       "--",
+     ]
+    command: ["./startup.sh", "./server"]
+    init: true
+    environment:
+      DB_NAME: 'ohlc'
+      DB_PASSWORD: 'mysqltest'
+      DB_PORT: '3306'
+      DB_USERNAME: 'root'
+      DB_HOST: 'ohlc-db'
+      SERVER_PORT: 8090
+      
+  
