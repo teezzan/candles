@@ -37,6 +37,11 @@ func (p *OHLCEntity) ToOHLC() OHLC {
 	}
 }
 
+// IsInComplete returns true if the OHLCEntity is incomplete.
+func (p *OHLCEntity) IsInComplete() bool {
+	return p.Time.IsZero() || p.Symbol == "" || p.Open == 0 || p.High == 0 || p.Close == 0 || p.Low == 0
+}
+
 // OHLCFieldName defines the OHLC Field name.
 type OHLCFieldName string
 

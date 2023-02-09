@@ -33,7 +33,7 @@ func main() {
 	ohlcRepo := ohlcRepository.NewRepository(db.SQL)
 
 	// Services
-	ohlcService := ohlc.NewService(zap.NewNop(), ohlcRepo)
+	ohlcService := ohlc.NewService(zap.NewNop(), ohlcRepo, conf.OHLCConfig)
 
 	// HTTP Handlers
 	ohlcHandler := ohlc.NewHTTPHandler(zap.NewNop(), ohlcService)

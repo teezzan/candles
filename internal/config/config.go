@@ -3,8 +3,9 @@ package config
 import "github.com/teezzan/ohlc/internal/util"
 
 type Config struct {
-	Database DatabaseConfig
-	Server   ServerConfig
+	Database   DatabaseConfig
+	Server     ServerConfig
+	OHLCConfig OHLCConfig
 }
 
 type DatabaseConfig struct {
@@ -20,6 +21,10 @@ type ServerConfig struct {
 	Port int
 }
 
+type OHLCConfig struct {
+	DiscardInCompleteRow bool
+}
+
 func Init() *Config {
 	return &Config{
 		Database: DatabaseConfig{
@@ -32,6 +37,9 @@ func Init() *Config {
 		Server: ServerConfig{
 			Host: util.GetString("SERVER_HOST", "localhost"),
 			Port: util.GetInt("SERVER_PORT", 8090),
+		},
+		OHLCConfig: OHLCConfig{
+			DiscardInCompleteRow: util.GetBool("OHLC_DISCARD_INCOMPLETE_ROW", false),
 		},
 	}
 

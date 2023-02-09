@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/teezzan/ohlc/internal/config"
 	"github.com/teezzan/ohlc/internal/controller/ohlc/data"
 	"github.com/teezzan/ohlc/internal/controller/ohlc/repository"
 	E "github.com/teezzan/ohlc/internal/errors"
@@ -15,17 +16,20 @@ import (
 var _ Service = (*DefaultService)(nil)
 
 type DefaultService struct {
-	logger     *zap.Logger
-	repository repository.Repository
+	logger               *zap.Logger
+	repository           repository.Repository
+	discardInCompleteRow bool
 }
 
 func NewService(
 	logger *zap.Logger,
 	repository repository.Repository,
+	ohlcConf config.OHLCConfig,
 ) *DefaultService {
 	return &DefaultService{
-		logger:     logger,
-		repository: repository,
+		logger:               logger,
+		repository:           repository,
+		discardInCompleteRow: ohlcConf.DiscardInCompleteRow,
 	}
 }
 
@@ -45,7 +49,11 @@ func (s *DefaultService) CreateOHLCPoints(ctx context.Context, dataPoints [][]st
 	for _, row := range dataPoints[1:] {
 		d, err := getOHLCPoint(row, fieldIndexes)
 		if err != nil {
-			return err
+			if s.discardInCompleteRow {
+				s.logger.Warn("Discarding incomplete row", zap.Error(err))
+			} else {
+				return err
+			}
 		}
 		ohlcPoints = append(ohlcPoints, *d)
 	}
@@ -86,6 +94,21 @@ func getFieldTitleIndex(header []string) data.OHLCFieldIndexes {
 
 func getOHLCPoint(row []string, fieldIndexes data.OHLCFieldIndexes) (*data.OHLCEntity, error) {
 	var d data.OHLCEntity
+
+	if fieldIndexes.Symbol.Index != nil {
+		t := row[*fieldIndexes.Symbol.Index]
+		d.Symbol = strings.TrimSpace(t)
+	}
+
+	if fieldIndexes.Unix.Index != nil {
+		t := row[*fieldIndexes.Unix.Index]
+		i, err := strconv.ParseInt(t, 10, 64)
+		if err != nil {
+			return nil, err
+		}
+		d.Time = time.Unix(i, 0)
+	}
+
 	if fieldIndexes.Open.Index != nil {
 		t := row[*fieldIndexes.Open.Index]
 		val, err := strconv.ParseFloat(strings.TrimSpace(t), 64)
@@ -122,18 +145,8 @@ func getOHLCPoint(row []string, fieldIndexes data.OHLCFieldIndexes) (*data.OHLCE
 		d.Close = val
 	}
 
-	if fieldIndexes.Symbol.Index != nil {
-		t := row[*fieldIndexes.Symbol.Index]
-		d.Symbol = strings.TrimSpace(t)
-	}
-
-	if fieldIndexes.Unix.Index != nil {
-		t := row[*fieldIndexes.Unix.Index]
-		i, err := strconv.ParseInt(t, 10, 64)
-		if err != nil {
-			return nil, err
-		}
-		d.Time = time.Unix(i, 0)
+	if d.IsInComplete() {
+		return nil, E.NewErrInvalidArgument("Invalid CSV row")
 	}
 
 	return &d, nil
