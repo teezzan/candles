@@ -1,0 +1,4 @@
+*.env
+/bin
+/cmd/server/__debug_bin
+.vscode
