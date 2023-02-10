@@ -224,7 +224,10 @@ func (s *DefaultService) GetAndProcessSQSMessage(ctx context.Context) error {
 	if len(filenames) == 0 {
 		return nil
 	}
-
+	for _, filename := range filenames {
+		// Create Goroutines to process the files in parallel
+		go s.DownloadAndProcessCSV(ctx, filename)
+	}
 	return nil
 }
 
