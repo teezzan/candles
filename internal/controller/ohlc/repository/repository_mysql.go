@@ -69,6 +69,7 @@ func (r *MySQLRepository) GetDataPoints(ctx context.Context, payload data.GetOHL
 		symbol = ?
 		AND time >= ?
 		AND time <= ?
+	ORDER BY time ASC
 	LIMIT ?
 	OFFSET ?
 	`

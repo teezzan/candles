@@ -156,21 +156,21 @@ func extractDataPoint(row []string, fieldIndexes data.OHLCFieldIndexes) (*data.O
 }
 
 // GetDataPoints returns OHLC points for a given symbol and time range
-func (s *DefaultService) GetDataPoints(ctx context.Context, payload data.GetOHLCRequest) ([]data.OHLCEntity, error) {
+func (s *DefaultService) GetDataPoints(ctx context.Context, payload data.GetOHLCRequest) ([]data.OHLCEntity, *int, error) {
 	if payload.Symbol == "" {
-		return nil, E.NewErrInvalidArgument("symbol is required")
+		return nil, nil, E.NewErrInvalidArgument("symbol is required")
 	}
 	if payload.StartTime <= 0 {
-		return nil, E.NewErrInvalidArgument("from is required")
+		return nil, nil, E.NewErrInvalidArgument("from is required")
 	}
 	if payload.EndTime.Valid && payload.EndTime.Int64 < payload.StartTime {
-		return nil, E.NewErrInvalidArgument("to must be greater than from")
+		return nil, nil, E.NewErrInvalidArgument("to must be greater than from")
 	}
 	if payload.PageSize.Valid && payload.PageSize.Int64 <= 0 {
-		return nil, E.NewErrInvalidArgument("page size must be greater than 0")
+		return nil, nil, E.NewErrInvalidArgument("page size must be greater than 0")
 	}
 	if payload.PageNumber.Valid && payload.PageNumber.Int64 <= 0 {
-		return nil, E.NewErrInvalidArgument("page number must be greater than 0")
+		return nil, nil, E.NewErrInvalidArgument("page number must be greater than 0")
 	}
 
 	if !payload.PageSize.Valid {
@@ -182,6 +182,10 @@ func (s *DefaultService) GetDataPoints(ctx context.Context, payload data.GetOHLC
 	if !payload.EndTime.Valid {
 		payload.EndTime = null.NewInt64(time.Now().Unix())
 	}
-	// calculate offset
-	return s.repository.GetDataPoints(ctx, payload)
+
+	data, err := s.repository.GetDataPoints(ctx, payload)
+	if err != nil {
+		return nil, nil, err
+	}
+	return data, payload.PageNumber.AsRef(), nil
 }

@@ -8,12 +8,12 @@ import (
 
 // Project defines the ohlc project DTO
 type OHLC struct {
-	Time   time.Time `json:"time"`
-	Symbol string    `json:"symbol"`
-	Open   float64   `json:"open"`
-	High   float64   `json:"high"`
-	Close  float64   `json:"close"`
-	Low    float64   `json:"low"`
+	Time   int64   `json:"unix"`
+	Symbol string  `json:"symbol"`
+	Open   float64 `json:"open"`
+	High   float64 `json:"high"`
+	Close  float64 `json:"close"`
+	Low    float64 `json:"low"`
 }
 
 // OHLCEntity defines the ohlc data.
@@ -30,7 +30,7 @@ type OHLCEntity struct {
 // OHLCEntity converts OHLCEntity to OHLC
 func (p *OHLCEntity) ToOHLC() OHLC {
 	return OHLC{
-		Time:   p.Time,
+		Time:   p.Time.Unix(),
 		Symbol: p.Symbol,
 		Open:   p.Open,
 		High:   p.High,
@@ -85,4 +85,10 @@ type GetOHLCRequest struct {
 	EndTime    null.Int64 `form:"to"`
 	PageNumber null.Int   `form:"page"`
 	PageSize   null.Int   `form:"page_size"`
+}
+
+// GetOHLCResponse defines the get ohlc response.
+type GetOHLCResponse struct {
+	DataPoints []OHLC `json:"data"`
+	Page int    `json:"page"`
 }

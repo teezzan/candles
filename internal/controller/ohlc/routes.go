@@ -68,7 +68,7 @@ func (h *HTTPHandler) getOHLCPointsHandler(c *gin.Context) error {
 	if err := c.ShouldBindQuery(&query); err != nil {
 		return httputil.BadRequest(c, err)
 	}
-	dp, err := h.ohlcService.GetDataPoints(c, query)
+	dp, page, err := h.ohlcService.GetDataPoints(c, query)
 	if err != nil {
 		return err
 	}
@@ -78,5 +78,10 @@ func (h *HTTPHandler) getOHLCPointsHandler(c *gin.Context) error {
 		p = append(p, point.ToOHLC())
 	}
 
-	return httputil.OK(c, p)
+	resp := data.GetOHLCResponse{
+		DataPoints: p,
+		Page:       *page,
+	}
+
+	return httputil.OK(c, resp)
 }
