@@ -32,6 +32,7 @@ func (h *HTTPHandler) SetupRouter(r *gin.RouterGroup) error {
 
 	r.POST("/data", handler(h.processCSVHandler))
 	r.GET("/data", handler(h.getOHLCPointsHandler))
+	r.GET("/", handler(h.generatePreSignedURLHandler))
 
 	return nil
 }
@@ -84,4 +85,14 @@ func (h *HTTPHandler) getOHLCPointsHandler(c *gin.Context) error {
 	}
 
 	return httputil.OK(c, resp)
+}
+
+// generatePreSignedURLHandler generates a pre-signed URL for the given file name.
+func (h *HTTPHandler) generatePreSignedURLHandler(c *gin.Context) error {
+	result, err := h.ohlcService.GeneratePreSignedURL(c)
+	if err != nil {
+		return err
+	}
+
+	return httputil.OK(c, result)
 }

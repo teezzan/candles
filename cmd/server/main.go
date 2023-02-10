@@ -1,10 +1,12 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/teezzan/ohlc/internal/client/awsS3"
 	"github.com/teezzan/ohlc/internal/config"
 	ohlc "github.com/teezzan/ohlc/internal/controller/ohlc"
 	ohlcRepository "github.com/teezzan/ohlc/internal/controller/ohlc/repository"
@@ -29,11 +31,17 @@ func main() {
 	}
 	defer db.Close()
 
+	//Clients
+	awsS3Client, err := awsS3.NewClient(context.TODO(), zap.NewNop(), conf.S3Config)
+	if err != nil {
+		panic(err)
+	}
+
 	// Repositories
 	ohlcRepo := ohlcRepository.NewRepository(db.SQL)
 
 	// Services
-	ohlcService := ohlc.NewService(zap.NewNop(), ohlcRepo, conf.OHLCConfig)
+	ohlcService := ohlc.NewService(zap.NewNop(), ohlcRepo, awsS3Client, conf.OHLCConfig)
 
 	// HTTP Handlers
 	ohlcHTTPHandler := ohlc.NewHTTPHandler(zap.NewNop(), ohlcService)

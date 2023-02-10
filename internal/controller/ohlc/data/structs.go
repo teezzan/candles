@@ -90,5 +90,11 @@ type GetOHLCRequest struct {
 // GetOHLCResponse defines the get ohlc response.
 type GetOHLCResponse struct {
 	DataPoints []OHLC `json:"data"`
-	Page int    `json:"page"`
+	Page       int    `json:"page"`
+}
+
+// GeneratePresignedURLResponse defines the generate presigned url response.
+type GeneratePresignedURLResponse struct {
+	URL      string `json:"url"`
+	Filename string `json:"filename"`
 }

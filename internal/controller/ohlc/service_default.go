@@ -2,15 +2,18 @@ package ohlc
 
 import (
 	"context"
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/teezzan/ohlc/internal/client/awsS3"
 	"github.com/teezzan/ohlc/internal/config"
 	"github.com/teezzan/ohlc/internal/controller/ohlc/data"
 	"github.com/teezzan/ohlc/internal/controller/ohlc/repository"
 	E "github.com/teezzan/ohlc/internal/errors"
 	"github.com/teezzan/ohlc/internal/null"
+	"github.com/teezzan/ohlc/internal/util"
 	"go.uber.org/zap"
 )
 
@@ -19,6 +22,7 @@ var _ Service = (*DefaultService)(nil)
 type DefaultService struct {
 	logger               *zap.Logger
 	repository           repository.Repository
+	s3Client             *awsS3.DefaultClient
 	discardInCompleteRow bool
 	defaulDataPointLimit int
 }
@@ -26,6 +30,7 @@ type DefaultService struct {
 func NewService(
 	logger *zap.Logger,
 	repository repository.Repository,
+	s3Client *awsS3.DefaultClient,
 	ohlcConf config.OHLCConfig,
 ) *DefaultService {
 	return &DefaultService{
@@ -33,6 +38,7 @@ func NewService(
 		repository:           repository,
 		discardInCompleteRow: ohlcConf.DiscardInCompleteRow,
 		defaulDataPointLimit: ohlcConf.DefaultDataPointLimit,
+		s3Client:             s3Client,
 	}
 }
 
@@ -188,4 +194,18 @@ func (s *DefaultService) GetDataPoints(ctx context.Context, payload data.GetOHLC
 		return nil, nil, err
 	}
 	return data, payload.PageNumber.AsRef(), nil
+}
+
+// GeneratePreSignedURL generates a pre-signed URL for a given bucket and object
+func (s *DefaultService) GeneratePreSignedURL(ctx context.Context) (*data.GeneratePresignedURLResponse, error) {
+	filename := fmt.Sprintf("%s.csv", util.GenerateUUID())
+	url, err := s.s3Client.GeneratePresignedURL(ctx, filename)
+	if err != nil {
+		return nil, err
+	}
+
+	return &data.GeneratePresignedURLResponse{
+		URL:      url,
+		Filename: filename,
+	}, nil
 }

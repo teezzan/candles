@@ -6,6 +6,7 @@ type Config struct {
 	Database   DatabaseConfig
 	Server     ServerConfig
 	OHLCConfig OHLCConfig
+	S3Config   S3Config
 }
 
 type DatabaseConfig struct {
@@ -26,6 +27,12 @@ type OHLCConfig struct {
 	DefaultDataPointLimit int
 }
 
+type S3Config struct {
+	Region               string
+	Bucket               string
+	PresignURLExpiryTime int
+}
+
 func Init() *Config {
 	return &Config{
 		Database: DatabaseConfig{
@@ -42,6 +49,11 @@ func Init() *Config {
 		OHLCConfig: OHLCConfig{
 			DiscardInCompleteRow:  util.GetBool("OHLC_DISCARD_INCOMPLETE_ROW", false),
 			DefaultDataPointLimit: util.GetInt("OHLC_DATA_POINT_LIMIT", 100),
+		},
+		S3Config: S3Config{
+			Region:               util.GetString("S3_REGION", "us-east-1"),
+			Bucket:               util.GetString("S3_BUCKET", "coiny-data-bucket"),
+			PresignURLExpiryTime: util.GetInt("S3_PRESIGN_URL_EXPIRY_TIME", 2), //in hours
 		},
 	}
 
