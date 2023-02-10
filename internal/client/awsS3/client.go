@@ -7,4 +7,5 @@ import "context"
 type Client interface {
 	ListBuckets(ctx context.Context) error
 	GeneratePresignedURL(ctx context.Context, key string) (string, error)
+	DownloadLargeObject(ctx context.Context, objectKey string) ([]byte, error)
 }

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	s3Config "github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/feature/s3/manager"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/teezzan/ohlc/internal/config"
@@ -74,4 +75,23 @@ func (c *DefaultClient) GeneratePresignedURL(ctx context.Context, key string) (s
 		return "", err
 	}
 	return req.URL, nil
+}
+
+// DownloadLargeObject uses a download manager to download an object from a bucket.
+// The download manager gets the data in parts and writes them to a buffer until all of
+// the data has been downloaded.
+func (c *DefaultClient) DownloadLargeObject(ctx context.Context, objectKey string) ([]byte, error) {
+	var partMiBs int64 = 10
+	downloader := manager.NewDownloader(c.s3Client, func(d *manager.Downloader) {
+		d.PartSize = partMiBs * 1024 * 1024
+	})
+	buffer := manager.NewWriteAtBuffer([]byte{})
+	_, err := downloader.Download(context.TODO(), buffer, &s3.GetObjectInput{
+		Bucket: aws.String(c.bucketName),
+		Key:    aws.String(objectKey),
+	})
+	if err != nil {
+		return nil, err
+	}
+	return buffer.Bytes(), err
 }
