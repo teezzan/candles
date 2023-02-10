@@ -32,7 +32,7 @@ func (h *HTTPHandler) SetupRouter(r *gin.RouterGroup) error {
 
 	r.POST("/data", handler(h.processCSVHandler))
 	r.GET("/data", handler(h.getOHLCPointsHandler))
-	r.GET("/", handler(h.generatePreSignedURLHandler))
+	r.GET("/generate_url", handler(h.generatePreSignedURLHandler))
 
 	return nil
 }

@@ -45,7 +45,7 @@ func NewClient(
 		presignClient:        presignClient,
 		bucketName:           conf.Bucket,
 		region:               conf.Region,
-		presignURLExpiryTime: conf.PresignURLExpiryTime,
+		presignURLExpiryTime: conf.PresignURLExpiryTime * 60,
 	}, nil
 }
 
@@ -67,7 +67,7 @@ func (c *DefaultClient) GeneratePresignedURL(ctx context.Context, key string) (s
 		Bucket: aws.String(c.bucketName),
 		Key:    aws.String(key),
 	}, func(opts *s3.PresignOptions) {
-		opts.Expires = time.Duration(int64(c.presignURLExpiryTime) * int64(time.Minute) * int64(time.Second))
+		opts.Expires = time.Duration(int64(c.presignURLExpiryTime) * int64(time.Second))
 	})
 
 	if err != nil {
