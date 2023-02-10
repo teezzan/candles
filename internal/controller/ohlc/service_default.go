@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/teezzan/ohlc/internal/client/awsS3"
+	awsS3 "github.com/teezzan/ohlc/internal/client/s3"
 	"github.com/teezzan/ohlc/internal/config"
 	"github.com/teezzan/ohlc/internal/controller/ohlc/data"
 	"github.com/teezzan/ohlc/internal/controller/ohlc/repository"

@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/teezzan/ohlc/internal/client/awsS3"
+	awsS3 "github.com/teezzan/ohlc/internal/client/s3"
 	"github.com/teezzan/ohlc/internal/config"
 	ohlc "github.com/teezzan/ohlc/internal/controller/ohlc"
 	ohlcRepository "github.com/teezzan/ohlc/internal/controller/ohlc/repository"
