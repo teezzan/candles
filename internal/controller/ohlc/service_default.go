@@ -2,12 +2,14 @@ package ohlc
 
 import (
 	"context"
+	"encoding/csv"
 	"fmt"
 	"strconv"
 	"strings"
 	"time"
 
 	awsS3 "github.com/teezzan/ohlc/internal/client/s3"
+	"github.com/teezzan/ohlc/internal/client/sqs"
 	"github.com/teezzan/ohlc/internal/config"
 	"github.com/teezzan/ohlc/internal/controller/ohlc/data"
 	"github.com/teezzan/ohlc/internal/controller/ohlc/repository"
@@ -23,6 +25,7 @@ type DefaultService struct {
 	logger               *zap.Logger
 	repository           repository.Repository
 	s3Client             *awsS3.DefaultClient
+	sqsClient            *sqs.DefaultClient
 	discardInCompleteRow bool
 	defaulDataPointLimit int
 }
@@ -31,6 +34,7 @@ func NewService(
 	logger *zap.Logger,
 	repository repository.Repository,
 	s3Client *awsS3.DefaultClient,
+	sqsClient *sqs.DefaultClient,
 	ohlcConf config.OHLCConfig,
 ) *DefaultService {
 	return &DefaultService{
@@ -39,6 +43,7 @@ func NewService(
 		discardInCompleteRow: ohlcConf.DiscardInCompleteRow,
 		defaulDataPointLimit: ohlcConf.DefaultDataPointLimit,
 		s3Client:             s3Client,
+		sqsClient:            sqsClient,
 	}
 }
 
@@ -208,4 +213,37 @@ func (s *DefaultService) GeneratePreSignedURL(ctx context.Context) (*data.Genera
 		URL:      url,
 		Filename: filename,
 	}, nil
+}
+
+// GetAndProcessSQSMessage gets to SQS queue and processes the message
+func (s *DefaultService) GetAndProcessSQSMessage(ctx context.Context) error {
+	filenames, err := s.sqsClient.GetFilenamesFromMessages(ctx)
+	if err != nil {
+		return err
+	}
+	if len(filenames) == 0 {
+		return nil
+	}
+
+	return nil
+}
+
+// DownloadAndProcessCSV downloads the CSV file from S3 and processes it
+func (s *DefaultService) DownloadAndProcessCSV(ctx context.Context, filename string) error {
+	s3FileData, err := s.s3Client.DownloadLargeObject(ctx, filename)
+	if err != nil {
+		return err
+	}
+
+	r := csv.NewReader(strings.NewReader(string(s3FileData)))
+	csvData, err := r.ReadAll()
+	if err != nil {
+		return err
+	}
+
+	err = s.CreateDataPoints(ctx, csvData)
+	if err != nil {
+		return err
+	}
+	return nil
 }

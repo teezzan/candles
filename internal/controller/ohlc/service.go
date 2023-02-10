@@ -12,4 +12,6 @@ type Service interface {
 	CreateDataPoints(ctx context.Context, dataPoints [][]string) error
 	GetDataPoints(ctx context.Context, payload data.GetOHLCRequest) ([]data.OHLCEntity, *int, error)
 	GeneratePreSignedURL(ctx context.Context) (*data.GeneratePresignedURLResponse, error)
+	GetAndProcessSQSMessage(ctx context.Context) error
+	DownloadAndProcessCSV(ctx context.Context, filename string) error
 }

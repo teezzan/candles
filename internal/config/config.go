@@ -7,6 +7,7 @@ type Config struct {
 	Server     ServerConfig
 	OHLCConfig OHLCConfig
 	S3Config   S3Config
+	SQSConfig  SQSConfig
 }
 
 type DatabaseConfig struct {
@@ -33,6 +34,11 @@ type S3Config struct {
 	PresignURLExpiryTime int
 }
 
+type SQSConfig struct {
+	Region string
+	Queue  string
+}
+
 func Init() *Config {
 	return &Config{
 		Database: DatabaseConfig{
@@ -54,6 +60,10 @@ func Init() *Config {
 			Region:               util.GetString("S3_REGION", "us-east-1"),
 			Bucket:               util.GetString("S3_BUCKET", "coiny-data-bucket"),
 			PresignURLExpiryTime: util.GetInt("S3_PRESIGN_URL_EXPIRY_TIME", 2), //in hours
+		},
+		SQSConfig: SQSConfig{
+			Region: util.GetString("SQS_REGION", "us-east-1"),
+			Queue:  util.GetString("SQS_QUEUE", "candle-files-notification-fifo"),
 		},
 	}
 
