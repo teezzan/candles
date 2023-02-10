@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"time"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/teezzan/ohlc/internal/controller/ohlc/data"
@@ -25,8 +26,8 @@ func (r *MySQLRepository) GetohlcByUUID(ctx context.Context, uuid string) (*data
 	return nil, nil
 }
 
-// CreateOHLCPoints creates OHLC points
-func (r *MySQLRepository) CreateOHLCPoints(ctx context.Context, rows []data.OHLCEntity) error {
+// InsertDataPoints creates OHLC points
+func (r *MySQLRepository) InsertDataPoints(ctx context.Context, rows []data.OHLCEntity) error {
 	stmt := `
 	INSERT INTO ohlc_data
 		(
@@ -52,8 +53,8 @@ func (r *MySQLRepository) CreateOHLCPoints(ctx context.Context, rows []data.OHLC
 	return nil
 }
 
-// GetOHLCPoints returns OHLC points for a given symbol and time range with pagination
-func (r *MySQLRepository) GetOHLCPoints(ctx context.Context, payload data.GetOHLCRequest) ([]data.OHLCEntity, error) {
+// GetDataPoints returns OHLC points for a given symbol and time range with pagination
+func (r *MySQLRepository) GetDataPoints(ctx context.Context, payload data.GetOHLCRequest) ([]data.OHLCEntity, error) {
 	stmt := `
 	SELECT
 		time,
@@ -74,7 +75,10 @@ func (r *MySQLRepository) GetOHLCPoints(ctx context.Context, payload data.GetOHL
 	var ohlcPoints []data.OHLCEntity
 
 	offset := (payload.PageNumber.Int64 - 1) * payload.PageSize.Int64
-	err := r.SelectContext(ctx, &ohlcPoints, stmt, payload.Symbol, payload.StartTime, payload.EndTime, payload.PageSize, offset)
+	startTime := time.Unix(payload.StartTime, 0)
+	endTime := time.Unix(payload.EndTime.Int64, 0)
+
+	err := r.SelectContext(ctx, &ohlcPoints, stmt, payload.Symbol, startTime, endTime, payload.PageSize, offset)
 	if err != nil {
 		return nil, err
 	}

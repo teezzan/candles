@@ -31,6 +31,7 @@ func (h *HTTPHandler) SetupRouter(r *gin.RouterGroup) error {
 	handler := httputil.NewHandlerWrapper(h.logger)
 
 	r.POST("/data", handler(h.processCSVHandler))
+	r.GET("/data", handler(h.getOHLCPointsHandler))
 
 	return nil
 }
@@ -53,7 +54,7 @@ func (h *HTTPHandler) processCSVHandler(c *gin.Context) error {
 		return httputil.BadRequest(c, err)
 	}
 
-	err = h.ohlcService.CreateOHLCPoints(c, csvData)
+	err = h.ohlcService.CreateDataPoints(c, csvData)
 	if err != nil {
 		return err
 	}
@@ -67,7 +68,7 @@ func (h *HTTPHandler) getOHLCPointsHandler(c *gin.Context) error {
 	if err := c.ShouldBindQuery(&query); err != nil {
 		return httputil.BadRequest(c, err)
 	}
-	dp, err := h.ohlcService.GetOHLCPoints(c, query)
+	dp, err := h.ohlcService.GetDataPoints(c, query)
 	if err != nil {
 		return err
 	}
@@ -78,5 +79,4 @@ func (h *HTTPHandler) getOHLCPointsHandler(c *gin.Context) error {
 	}
 
 	return httputil.OK(c, p)
-	return nil
 }

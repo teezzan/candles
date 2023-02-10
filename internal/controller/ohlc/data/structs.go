@@ -80,9 +80,9 @@ func (c *OHLCFieldIndexes) IsInComplete() bool {
 
 // GetOHLCRequest defines the get ohlc request.
 type GetOHLCRequest struct {
-	Symbol     string    `form:"symbol"`
-	StartTime  time.Time `form:"from"`
-	EndTime    null.Time `form:"to"`
-	PageNumber null.Int  `form:"page"`
-	PageSize   null.Int  `form:"page_size"`
+	Symbol     string     `form:"symbol"`
+	StartTime  int64      `form:"from"`
+	EndTime    null.Int64 `form:"to"`
+	PageNumber null.Int   `form:"page"`
+	PageSize   null.Int   `form:"page_size"`
 }

@@ -36,8 +36,8 @@ func NewService(
 	}
 }
 
-// CreateOHLCPoints creates OHLC points
-func (s *DefaultService) CreateOHLCPoints(ctx context.Context, dataPoints [][]string) error {
+// CreateDataPoints creates OHLC points
+func (s *DefaultService) CreateDataPoints(ctx context.Context, dataPoints [][]string) error {
 	if len(dataPoints) == 0 {
 		return nil
 	}
@@ -50,7 +50,7 @@ func (s *DefaultService) CreateOHLCPoints(ctx context.Context, dataPoints [][]st
 
 	ohlcPoints := make([]data.OHLCEntity, 0, len(dataPoints)-1)
 	for _, row := range dataPoints[1:] {
-		d, err := getOHLCPoint(row, fieldIndexes)
+		d, err := extractDataPoint(row, fieldIndexes)
 		if err != nil {
 			if s.discardInCompleteRow {
 				s.logger.Warn("Discarding incomplete row", zap.Error(err))
@@ -61,7 +61,7 @@ func (s *DefaultService) CreateOHLCPoints(ctx context.Context, dataPoints [][]st
 		ohlcPoints = append(ohlcPoints, *d)
 	}
 
-	err := s.repository.CreateOHLCPoints(ctx, ohlcPoints)
+	err := s.repository.InsertDataPoints(ctx, ohlcPoints)
 	if err != nil {
 		return err
 	}
@@ -95,7 +95,7 @@ func getFieldTitleIndex(header []string) data.OHLCFieldIndexes {
 	return v
 }
 
-func getOHLCPoint(row []string, fieldIndexes data.OHLCFieldIndexes) (*data.OHLCEntity, error) {
+func extractDataPoint(row []string, fieldIndexes data.OHLCFieldIndexes) (*data.OHLCEntity, error) {
 	var d data.OHLCEntity
 
 	if fieldIndexes.Symbol.Index != nil {
@@ -155,15 +155,15 @@ func getOHLCPoint(row []string, fieldIndexes data.OHLCFieldIndexes) (*data.OHLCE
 	return &d, nil
 }
 
-// GetOHLCPoints returns OHLC points for a given symbol and time range
-func (s *DefaultService) GetOHLCPoints(ctx context.Context, payload data.GetOHLCRequest) ([]data.OHLCEntity, error) {
+// GetDataPoints returns OHLC points for a given symbol and time range
+func (s *DefaultService) GetDataPoints(ctx context.Context, payload data.GetOHLCRequest) ([]data.OHLCEntity, error) {
 	if payload.Symbol == "" {
 		return nil, E.NewErrInvalidArgument("symbol is required")
 	}
-	if payload.StartTime.IsZero() {
+	if payload.StartTime <= 0 {
 		return nil, E.NewErrInvalidArgument("from is required")
 	}
-	if payload.EndTime.Valid && payload.EndTime.Time.Before(payload.StartTime) {
+	if payload.EndTime.Valid && payload.EndTime.Int64 < payload.StartTime {
 		return nil, E.NewErrInvalidArgument("to must be greater than from")
 	}
 	if payload.PageSize.Valid && payload.PageSize.Int64 <= 0 {
@@ -180,8 +180,8 @@ func (s *DefaultService) GetOHLCPoints(ctx context.Context, payload data.GetOHLC
 		payload.PageNumber = null.NewInt(1)
 	}
 	if !payload.EndTime.Valid {
-		payload.EndTime.Time = time.Now()
+		payload.EndTime = null.NewInt64(time.Now().Unix())
 	}
 	// calculate offset
-	return s.repository.GetOHLCPoints(ctx, payload)
+	return s.repository.GetDataPoints(ctx, payload)
 }
