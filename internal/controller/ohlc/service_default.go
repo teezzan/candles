@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/csv"
 	"fmt"
+	"reflect"
 	"strconv"
 	"strings"
 	"time"
@@ -108,6 +109,10 @@ func getFieldTitleIndex(header []string) data.OHLCFieldIndexes {
 
 func extractDataPoint(row []string, fieldIndexes data.OHLCFieldIndexes) (*data.OHLCEntity, error) {
 	var d data.OHLCEntity
+
+	if len(row) != reflect.TypeOf(fieldIndexes).NumField() {
+		return nil, E.NewErrInvalidArgument("Invalid CSV row")
+	}
 
 	if fieldIndexes.Symbol.Index != nil {
 		t := row[*fieldIndexes.Symbol.Index]
