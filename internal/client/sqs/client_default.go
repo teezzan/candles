@@ -62,6 +62,7 @@ func (c *DefaultClient) GetFilenamesFromMessages(ctx context.Context) ([]string,
 	}
 
 	var filenames []string
+	var receiptHandles []string
 	for _, m := range result.Messages {
 		if m.Body != nil {
 			keys, err := extractKeyFromMessage(*m.Body)
@@ -70,7 +71,16 @@ func (c *DefaultClient) GetFilenamesFromMessages(ctx context.Context) ([]string,
 			}
 			filenames = append(filenames, keys...)
 		}
+		if m.ReceiptHandle != nil {
+			receiptHandles = append(receiptHandles, *m.ReceiptHandle)
+		}
 	}
+
+	err = c.DeleteMessages(ctx, receiptHandles)
+	if err != nil {
+		return nil, err
+	}
+
 	return filenames, nil
 }
 
@@ -93,4 +103,18 @@ func extractKeyFromMessage(m string) ([]string, error) {
 		keys = append(keys, key.String())
 	}
 	return keys, nil
+}
+
+// DeleteMessages deletes messages from the queue.
+func (c *DefaultClient) DeleteMessages(ctx context.Context, messageHandles []string) error {
+	for _, m := range messageHandles {
+		_, err := c.sqsClient.DeleteMessage(ctx, &sqs.DeleteMessageInput{
+			QueueUrl:      &c.queueURL,
+			ReceiptHandle: &m,
+		})
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }

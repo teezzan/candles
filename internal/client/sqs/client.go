@@ -8,4 +8,5 @@ import (
 // Client defines the AWS SQS client interface.
 type Client interface {
 	GetFilenamesFromMessages(ctx context.Context) ([]string, error)
+	DeleteMessages(ctx context.Context, messageHandles []string) error
 }

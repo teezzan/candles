@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/robfig/cron/v3"
 	awsS3 "github.com/teezzan/ohlc/internal/client/s3"
 	"github.com/teezzan/ohlc/internal/client/sqs"
 	"github.com/teezzan/ohlc/internal/config"
@@ -62,11 +63,11 @@ func main() {
 		panic(err)
 	}
 
-	// c := cron.New()
-	// c.AddFunc("@every 2m", func() {
-	ohlcService.GetAndProcessSQSMessage(context.Background())
-	//  })
-	// c.Start()
+	c := cron.New()
+	c.AddFunc("@every 2m", func() {
+		ohlcService.GetAndProcessSQSMessage(context.Background())
+	})
+	c.Start()
 
 	// Listen and Server in 0.0.0.0:8080
 	r.Run(fmt.Sprintf(":%d", conf.Server.Port))
