@@ -65,11 +65,12 @@ func main() {
 
 	c := cron.New()
 	c.AddFunc("@every 2m", func() {
+		zap.NewNop().Info("Processing SQS messages")
 		ohlcService.GetAndProcessSQSMessage(context.Background())
 	})
 	c.Start()
 
-	// Listen and Server in 0.0.0.0:8080
+	// Listen and Serve
 	r.Run(fmt.Sprintf(":%d", conf.Server.Port))
 }
 
