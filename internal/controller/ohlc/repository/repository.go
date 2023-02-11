@@ -5,6 +5,7 @@ import (
 
 	"github.com/teezzan/ohlc/internal/controller/ohlc/data"
 )
+//go:generate moq -rm -out repository_mock.go . Repository
 
 // Repository defines the period repository.
 type Repository interface {

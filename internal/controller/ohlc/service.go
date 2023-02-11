@@ -7,6 +7,8 @@ import (
 	"github.com/teezzan/ohlc/internal/controller/ohlc/data"
 )
 
+//go:generate moq -rm -out service_mock.go . Service
+
 // Service defines the ohlc service.
 type Service interface {
 	CreateDataPoints(ctx context.Context, dataPoints [][]string) error

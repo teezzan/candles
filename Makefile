@@ -18,6 +18,13 @@ serve: deps-godotenv ## Run locally
 build:  ## Build application binaries
 	go build -race -o ./bin/server ./cmd/server
 
+.PHONY: deps
+deps: deps-godotenv deps-moq ## Install build dependencies
+
+.PHONY: deps-moq
+deps-moq: ## Install build dependencies: moq
+	@which -s moq || go install github.com/djui/moq@v0.3.3
+
 .PHONY: deps-godotenv
 deps-godotenv: ## Install build dependencies: godotenv
 	@which -s godotenv || go install github.com/joho/godotenv/cmd/godotenv@latest

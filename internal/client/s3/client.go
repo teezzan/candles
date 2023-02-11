@@ -3,6 +3,8 @@ package awsS3
 
 import "context"
 
+//go:generate moq -rm -out client_mock.go . Client
+
 // Client defines the AWS S3 client interface.
 type Client interface {
 	ListBuckets(ctx context.Context) error
