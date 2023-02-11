@@ -2,6 +2,7 @@ package ohlc
 
 import (
 	"context"
+	"errors"
 	"testing"
 	"time"
 
@@ -277,6 +278,180 @@ func TestDefaultService_CreateDataPoints(t *testing.T) {
 			err := s.CreateDataPoints(ctx, tt.dataPoints)
 			require.Equal(t, tt.wantErr, err != nil)
 			assert.Len(t, tt.repository.InsertDataPointsCalls(), tt.InsertDataPointsCallsNum)
+		})
+	}
+}
+
+func TestDefaultService_GeneratePreSignedURL(t *testing.T) {
+	tests := []struct {
+		name     string
+		s3Client s3.ClientMock
+		wantErr  bool
+	}{
+		{
+			name: "valid s3 client response",
+			s3Client: s3.ClientMock{
+				GeneratePresignedURLFunc: func(ctx context.Context, key string) (string, error) {
+					return "https://test.com", nil
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "s3 client respond with error",
+			s3Client: s3.ClientMock{
+				GeneratePresignedURLFunc: func(ctx context.Context, key string) (string, error) {
+					return "", errors.New("test error")
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var (
+				ctx            = context.Background()
+				logger         = zap.NewNop()
+				mockSQSClient  = &sqs.ClientMock{}
+				mockRepository = &repository.RepositoryMock{}
+			)
+			conf := config.Init()
+
+			s := NewService(logger, mockRepository, &tt.s3Client, mockSQSClient, conf.OHLCConfig)
+			got, err := s.GeneratePreSignedURL(ctx)
+			require.Equal(t, tt.wantErr, err != nil)
+			if !tt.wantErr {
+				assert.NotEmpty(t, got)
+				assert.Len(t, tt.s3Client.GeneratePresignedURLCalls(), 1)
+			}
+		})
+	}
+}
+
+var validCSV = `UNIX,SYMBOL,OPEN,HIGH,LOW,CLOSE
+1610000000,BTC,100,200,50,150
+1610000001,BTC,150,250,100,200
+`
+var invalidCSV = `UNIX,SYMBOL,TOP,HIGH,LOW,CLOSE
+1610000000,BTC,100,200,50,150
+1610000001,BTC,150,250,100,200
+`
+
+func TestDefaultService_DownloadAndProcessCSV(t *testing.T) {
+	tests := []struct {
+		name     string
+		s3Client s3.ClientMock
+		wantErr  bool
+	}{
+		{
+			name: "valid CSV file without error",
+			s3Client: s3.ClientMock{
+				DownloadLargeObjectFunc: func(ctx context.Context, objectKey string) ([]byte, error) {
+					return []byte(validCSV), nil
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "invalid CSV file without error",
+			s3Client: s3.ClientMock{
+				DownloadLargeObjectFunc: func(ctx context.Context, objectKey string) ([]byte, error) {
+					return []byte(invalidCSV), nil
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "no CSV file with error",
+			s3Client: s3.ClientMock{
+				DownloadLargeObjectFunc: func(ctx context.Context, objectKey string) ([]byte, error) {
+					return nil, errors.New("test error")
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var (
+				ctx            = context.Background()
+				logger         = zap.NewNop()
+				mockSQSClient  = &sqs.ClientMock{}
+				mockRepository = &repository.RepositoryMock{
+					InsertDataPointsFunc: func(ctx context.Context, rows []data.OHLCEntity) error {
+						return nil
+					},
+				}
+			)
+			conf := config.Init()
+
+			s := NewService(logger, mockRepository, &tt.s3Client, mockSQSClient, conf.OHLCConfig)
+			err := s.DownloadAndProcessCSV(ctx, "test")
+			require.Equal(t, tt.wantErr, err != nil)
+			if !tt.wantErr {
+				assert.Len(t, tt.s3Client.DownloadLargeObjectCalls(), 1)
+				assert.Len(t, mockRepository.InsertDataPointsCalls(), 1)
+
+			}
+		})
+	}
+}
+
+func TestDefaultService_GetAndProcessSQSMessage(t *testing.T) {
+	tests := []struct {
+		name      string
+		sqsClient sqs.ClientMock
+		wantErr   bool
+	}{
+		{
+			name: "valid filenames without error",
+			sqsClient: sqs.ClientMock{
+				GetFilenamesFromMessagesFunc: func(ctx context.Context) ([]string, error) {
+					return []string{"test.csv"}, nil
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "No file without error",
+			sqsClient: sqs.ClientMock{
+				GetFilenamesFromMessagesFunc: func(ctx context.Context) ([]string, error) {
+					return nil, nil
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "no file with error",
+			sqsClient: sqs.ClientMock{
+				GetFilenamesFromMessagesFunc: func(ctx context.Context) ([]string, error) {
+					return nil, errors.New("test error")
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var (
+				ctx          = context.Background()
+				logger       = zap.NewNop()
+				mockS3Client = &s3.ClientMock{
+					DownloadLargeObjectFunc: func(ctx context.Context, objectKey string) ([]byte, error) {
+						return []byte(validCSV), nil
+					},
+				}
+				mockRepository = &repository.RepositoryMock{
+					InsertDataPointsFunc: func(ctx context.Context, rows []data.OHLCEntity) error {
+						return nil
+					},
+				}
+			)
+			conf := config.Init()
+
+			s := NewService(logger, mockRepository, mockS3Client, &tt.sqsClient, conf.OHLCConfig)
+			err := s.GetAndProcessSQSMessage(ctx)
+			require.Equal(t, tt.wantErr, err != nil)
 		})
 	}
 }
