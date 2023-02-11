@@ -31,13 +31,23 @@ func (h *HTTPHandler) SetupRouter(r *gin.RouterGroup) error {
 	handler := httputil.NewHandlerWrapper(h.logger)
 
 	r.POST("/data", handler(h.processCSVHandler))
-	r.GET("/data", handler(h.getOHLCPointsHandler))
+	r.GET("/data", handler(h.getOHLCDataHandler))
 	r.GET("/generate_url", handler(h.generatePreSignedURLHandler))
 
 	return nil
 }
 
 // processCSVHandler processes the CSV file.
+// ProcessCSVFile godoc
+// @Summary      Takes a CSV file upload and processes it
+// @Description  The endpoint takes a small CSV file upload and processes it. Max file size is 30MB.
+// @Tags         Upload, CSV
+// @Accept       mpfd
+// @Produce      json
+// @Success      200
+// @Failure      400  {object}  httputil.ErrorResponse
+// @Failure      500  {object}  httputil.ErrorResponse
+// @Router       /data [post]
 func (h *HTTPHandler) processCSVHandler(c *gin.Context) error {
 	file, err := c.FormFile("file")
 	if err != nil {
@@ -64,7 +74,21 @@ func (h *HTTPHandler) processCSVHandler(c *gin.Context) error {
 }
 
 // getOHLCPointsHandler gets the OHLC points for the given time range.
-func (h *HTTPHandler) getOHLCPointsHandler(c *gin.Context) error {
+// GetOHLCData godoc
+// @Summary      returns the OHLC points for the given time range
+// @Description  The endpoint returns the OHLC points for a particular Symbol for  the given time range
+// @Tags         fetch, OHLC
+// @Produce      json
+// @Param   	 symbol     query     string     true  "HAKO"     default(A)
+// @Param   	 from     query     string     true  "123363781282"     example(string)
+// @Param   	 to     query     string     false  "123363212332"     example(string)
+// @Param   	 page     query     int     false  1     example(string)
+// @Param   	 page_size     query     int     false  2     example(string)
+// @Success      200  {object}  data.GetOHLCResponse
+// @Failure      400  {object}  httputil.ErrorResponse
+// @Failure      500  {object}  httputil.ErrorResponse
+// @Router       /data [get]
+func (h *HTTPHandler) getOHLCDataHandler(c *gin.Context) error {
 	var query data.GetOHLCRequest
 	if err := c.ShouldBindQuery(&query); err != nil {
 		return httputil.BadRequest(c, err)

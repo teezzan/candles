@@ -19,7 +19,7 @@ build:  ## Build application binaries
 	go build -race -o ./bin/server ./cmd/server
 
 .PHONY: deps
-deps: deps-godotenv deps-moq ## Install build dependencies
+deps: deps-godotenv deps-moq deps-swag ## Install build dependencies
 
 .PHONY: deps-moq
 deps-moq: ## Install build dependencies: moq
@@ -28,6 +28,10 @@ deps-moq: ## Install build dependencies: moq
 .PHONY: deps-godotenv
 deps-godotenv: ## Install build dependencies: godotenv
 	@which -s godotenv || go install github.com/joho/godotenv/cmd/godotenv@latest
+
+.PHONY: deps-swag
+deps-swag: ## Install build dependencies: Swag
+	@which -s swag || go install github.com/swaggo/swag/cmd/swag@v1.8.10
 
 .PHONY: image
 image: ## Create Docker image

@@ -17,6 +17,11 @@ import (
 	"go.uber.org/zap"
 )
 
+// @title                     Candles API
+// @description               This is API specification for Candels, a OHLC data API platform.
+// @version                   1.0
+// @host                      localhost:8080
+// @BasePath                  /
 func main() {
 	//init dependencies
 	conf := config.Init()
