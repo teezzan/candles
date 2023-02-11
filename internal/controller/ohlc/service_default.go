@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	awsS3 "github.com/teezzan/ohlc/internal/client/s3"
+	"github.com/teezzan/ohlc/internal/client/s3"
 	"github.com/teezzan/ohlc/internal/client/sqs"
 	"github.com/teezzan/ohlc/internal/config"
 	"github.com/teezzan/ohlc/internal/controller/ohlc/data"
@@ -25,8 +25,8 @@ var _ Service = (*DefaultService)(nil)
 type DefaultService struct {
 	logger               *zap.Logger
 	repository           repository.Repository
-	s3Client             *awsS3.DefaultClient
-	sqsClient            *sqs.DefaultClient
+	s3Client             s3.Client
+	sqsClient            sqs.Client
 	discardInCompleteRow bool
 	defaulDataPointLimit int
 }
@@ -34,8 +34,8 @@ type DefaultService struct {
 func NewService(
 	logger *zap.Logger,
 	repository repository.Repository,
-	s3Client *awsS3.DefaultClient,
-	sqsClient *sqs.DefaultClient,
+	s3Client s3.Client,
+	sqsClient sqs.Client,
 	ohlcConf config.OHLCConfig,
 ) *DefaultService {
 	return &DefaultService{
@@ -69,8 +69,9 @@ func (s *DefaultService) CreateDataPoints(ctx context.Context, dataPoints [][]st
 			} else {
 				return err
 			}
+		} else {
+			ohlcPoints = append(ohlcPoints, *d)
 		}
-		ohlcPoints = append(ohlcPoints, *d)
 	}
 
 	err := s.repository.InsertDataPoints(ctx, ohlcPoints)

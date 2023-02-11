@@ -7,7 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/robfig/cron/v3"
-	awsS3 "github.com/teezzan/ohlc/internal/client/s3"
+	"github.com/teezzan/ohlc/internal/client/s3"
 	"github.com/teezzan/ohlc/internal/client/sqs"
 	"github.com/teezzan/ohlc/internal/config"
 	ohlc "github.com/teezzan/ohlc/internal/controller/ohlc"
@@ -36,7 +36,7 @@ func main() {
 	defer db.Close()
 
 	//Clients
-	s3Client, err := awsS3.NewClient(context.Background(), logger, conf.S3Config)
+	s3Client, err := s3.NewClient(context.Background(), logger, conf.S3Config)
 	if err != nil {
 		panic(err)
 	}

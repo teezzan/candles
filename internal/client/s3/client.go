@@ -1,5 +1,5 @@
-// Package awsS3 provides an S3 clients.
-package awsS3
+// Package s3 provides an S3 clients.
+package s3
 
 import "context"
 

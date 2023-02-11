@@ -1,4 +1,4 @@
-package awsS3
+package s3
 
 import (
 	"context"

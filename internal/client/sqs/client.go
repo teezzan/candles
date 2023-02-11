@@ -4,6 +4,7 @@ package sqs
 import (
 	"context"
 )
+//go:generate moq -rm -out client_mock.go . Client
 
 // Client defines the AWS SQS client interface.
 type Client interface {
