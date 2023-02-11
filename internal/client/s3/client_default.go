@@ -86,7 +86,7 @@ func (c *DefaultClient) DownloadLargeObject(ctx context.Context, objectKey strin
 		d.PartSize = partMiBs * 1024 * 1024
 	})
 	buffer := manager.NewWriteAtBuffer([]byte{})
-	_, err := downloader.Download(context.TODO(), buffer, &s3.GetObjectInput{
+	_, err := downloader.Download(ctx, buffer, &s3.GetObjectInput{
 		Bucket: aws.String(c.bucketName),
 		Key:    aws.String(objectKey),
 	})

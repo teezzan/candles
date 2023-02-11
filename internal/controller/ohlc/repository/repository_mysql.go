@@ -20,12 +20,6 @@ func NewRepository(db *sqlx.DB) *MySQLRepository {
 	return &MySQLRepository{db}
 }
 
-// GetohlcByUUID returns a ohlc by UUID.
-func (r *MySQLRepository) GetohlcByUUID(ctx context.Context, uuid string) (*data.OHLCEntity, error) {
-
-	return nil, nil
-}
-
 // InsertDataPoints creates OHLC points
 func (r *MySQLRepository) InsertDataPoints(ctx context.Context, rows []data.OHLCEntity) error {
 	stmt := `
