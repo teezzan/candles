@@ -13,6 +13,7 @@ import (
 	"github.com/teezzan/ohlc/internal/config"
 	"github.com/teezzan/ohlc/internal/controller/ohlc/data"
 	"github.com/teezzan/ohlc/internal/controller/ohlc/repository"
+	"github.com/teezzan/ohlc/internal/null"
 	"github.com/teezzan/ohlc/internal/util"
 	"go.uber.org/zap"
 )
@@ -453,5 +454,137 @@ func TestDefaultService_GetAndProcessSQSMessage(t *testing.T) {
 			err := s.GetAndProcessSQSMessage(ctx)
 			require.Equal(t, tt.wantErr, err != nil)
 		})
+	}
+}
+
+func TestDefaultService_GetDataPoints(t *testing.T) {
+	tests := []struct {
+		name           string
+		repository     repository.RepositoryMock
+		payload        data.GetOHLCRequest
+		wantPageNumber *int
+		wantErr        bool
+	}{
+		{
+			name: "valid payload",
+			repository: repository.RepositoryMock{
+				GetDataPointsFunc: func(ctx context.Context, payload data.GetOHLCRequest) ([]data.OHLCEntity, error) {
+					return []data.OHLCEntity{
+						{
+							ID:     1,
+							Symbol: "HAKO",
+							Time:   time.Now(),
+							Open:   100,
+							High:   200,
+							Low:    50,
+							Close:  150,
+						},
+					}, nil
+				},
+			},
+			payload: data.GetOHLCRequest{
+				Symbol:     "HAKO",
+				StartTime:  time.Now().Add(-time.Hour).Unix(),
+				EndTime:    null.NewInt64(time.Now().Unix()),
+				PageNumber: null.NewInt(1),
+				PageSize:   null.NewInt(10),
+			},
+			wantPageNumber: util.IntPtr(1),
+			wantErr:        false,
+		},
+		{
+			name: "invalid payload without Symbol",
+			repository: repository.RepositoryMock{},
+			payload: data.GetOHLCRequest{
+				StartTime:  time.Now().Add(-time.Hour).Unix(),
+				EndTime:    null.NewInt64(time.Now().Unix()),
+				PageNumber: null.NewInt(1),
+				PageSize:   null.NewInt(10),
+			},
+			wantPageNumber: nil,
+			wantErr:        true,
+		},
+		{
+			name: "invalid payload without StartTime",
+			repository: repository.RepositoryMock{},
+			payload: data.GetOHLCRequest{
+				Symbol:    "HAKO",
+				EndTime:    null.NewInt64(time.Now().Unix()),
+				PageNumber: null.NewInt(1),
+				PageSize:   null.NewInt(10),
+			},
+			wantPageNumber: nil,
+			wantErr:        true,
+		},
+		{
+			name: "invalid payload with negative page number",
+			repository: repository.RepositoryMock{},
+			payload: data.GetOHLCRequest{
+				Symbol:    "HAKO",
+				StartTime:  time.Now().Add(-time.Hour).Unix(),
+				EndTime:    null.NewInt64(time.Now().Unix()),
+				PageNumber: null.NewInt(-1),
+				PageSize:   null.NewInt(10),
+			},
+			wantPageNumber: nil,
+			wantErr:        true,
+		},
+		{
+			name: "invalid payload with negative page size",
+			repository: repository.RepositoryMock{},
+			payload: data.GetOHLCRequest{
+				Symbol:    "HAKO",
+				StartTime:  time.Now().Add(-time.Hour).Unix(),
+				EndTime:    null.NewInt64(time.Now().Unix()),
+				PageNumber: null.NewInt(1),
+				PageSize:   null.NewInt(-10),
+			},
+			wantPageNumber: nil,
+			wantErr:        true,
+		},
+		{
+			name: "should default to default values when endTime, page number and page size are not provided",
+			repository: repository.RepositoryMock{
+				GetDataPointsFunc: func(ctx context.Context, payload data.GetOHLCRequest) ([]data.OHLCEntity, error) {
+					return []data.OHLCEntity{
+						{
+							ID:     1,
+							Symbol: "HAKO",
+							Time:   time.Now(),
+							Open:   100,
+							High:   200,
+							Low:    50,
+							Close:  150,
+						},
+					}, nil
+				},
+			},
+			payload: data.GetOHLCRequest{
+				Symbol:     "HAKO",
+				StartTime:  time.Now().Add(-time.Hour).Unix(),
+			},
+			wantPageNumber: util.IntPtr(1),
+			wantErr:        false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var (
+				ctx           = context.Background()
+				logger        = zap.NewNop()
+				mockS3Client  = &s3.ClientMock{}
+				mockSQSClient = &sqs.ClientMock{}
+			)
+			conf := config.Init()
+
+			s := NewService(logger, &tt.repository, mockS3Client, mockSQSClient, conf.OHLCConfig)
+			got, pageNumber, err := s.GetDataPoints(ctx, tt.payload)
+			require.Equal(t, tt.wantErr, err != nil)
+			if !tt.wantErr {
+				assert.NotEmpty(t, got)
+				assert.Equal(t, *tt.wantPageNumber, *pageNumber)
+			}
+		})
+
 	}
 }

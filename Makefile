@@ -44,3 +44,7 @@ docker-up: ## Start docker-compose
 .PHONY: docker-down
 docker-down: ## Stop docker-compose
 	docker-compose down --remove-orphans
+
+.PHONY: test
+test: ## Run unit tests
+	go test -v -race ./cmd/... ./internal/...
