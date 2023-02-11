@@ -1,0 +1,140 @@
+basePath: /
+definitions:
+  data.GeneratePresignedURLResponse:
+    properties:
+      filename:
+        type: string
+      url:
+        type: string
+    type: object
+  data.GetOHLCResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/data.OHLC'
+        type: array
+      page:
+        type: integer
+    type: object
+  data.OHLC:
+    properties:
+      close:
+        type: number
+      high:
+        type: number
+      low:
+        type: number
+      open:
+        type: number
+      symbol:
+        type: string
+      unix:
+        type: integer
+    type: object
+  httputil.ErrorResponse:
+    properties:
+      code:
+        type: integer
+      message:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: This is API specification for Candels, a OHLC data API platform.
+  title: Candles API
+  version: "1.0"
+paths:
+  /data:
+    get:
+      description: The endpoint returns the OHLC points for a particular Symbol for  the
+        given time range
+      parameters:
+      - description: This is the symbol of the OHLC token
+        example: BTC
+        in: query
+        name: symbol
+        required: true
+        type: string
+      - description: UNIX time representation of the start time
+        example: "10344553332"
+        in: query
+        name: from
+        required: true
+        type: string
+      - description: UNIX time representation of the end time
+        example: "101019283847"
+        in: query
+        name: to
+        type: string
+      - description: page of response
+        example: 1
+        in: query
+        name: page
+        type: integer
+      - description: Number of OHLC datapoints per page
+        example: 5
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/data.GetOHLCResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httputil.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httputil.ErrorResponse'
+      summary: returns the OHLC points for the given time range
+    post:
+      consumes:
+      - multipart/form-data
+      description: The endpoint takes a small CSV file upload and processes it. Max
+        file size is 30MB.
+      parameters:
+      - description: account image
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httputil.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httputil.ErrorResponse'
+      summary: Takes a CSV file upload and processes it
+  /generate_url:
+    get:
+      description: The endpoint generates a pre-signed URL for the given file name
+        for uploading on S3, It supports huge files
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/data.GeneratePresignedURLResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httputil.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httputil.ErrorResponse'
+      summary: Generates a pre-signed URL for the given file name for uploading on
+        S3
+swagger: "2.0"

@@ -38,16 +38,16 @@ func (h *HTTPHandler) SetupRouter(r *gin.RouterGroup) error {
 }
 
 // processCSVHandler processes the CSV file.
-// ProcessCSVFile godoc
-// @Summary      Takes a CSV file upload and processes it
-// @Description  The endpoint takes a small CSV file upload and processes it. Max file size is 30MB.
-// @Tags         Upload, CSV
-// @Accept       mpfd
-// @Produce      json
-// @Success      200
-// @Failure      400  {object}  httputil.ErrorResponse
-// @Failure      500  {object}  httputil.ErrorResponse
-// @Router       /data [post]
+//
+//	@Summary		Takes a CSV file upload and processes it
+//	@Description	The endpoint takes a small CSV file upload and processes it. Max file size is 30MB.
+//	@Accept			multipart/form-data
+//	@Produce		json
+//	@Param			file	formData	file	true	"account image"
+//	@Success		200
+//	@Failure		400	{object}	httputil.ErrorResponse
+//	@Failure		500	{object}	httputil.ErrorResponse
+//	@Router			/data [post]
 func (h *HTTPHandler) processCSVHandler(c *gin.Context) error {
 	file, err := c.FormFile("file")
 	if err != nil {
@@ -74,20 +74,19 @@ func (h *HTTPHandler) processCSVHandler(c *gin.Context) error {
 }
 
 // getOHLCPointsHandler gets the OHLC points for the given time range.
-// GetOHLCData godoc
-// @Summary      returns the OHLC points for the given time range
-// @Description  The endpoint returns the OHLC points for a particular Symbol for  the given time range
-// @Tags         fetch, OHLC
-// @Produce      json
-// @Param   	 symbol     query     string     true  "HAKO"     default(A)
-// @Param   	 from     query     string     true  "123363781282"     example(string)
-// @Param   	 to     query     string     false  "123363212332"     example(string)
-// @Param   	 page     query     int     false  1     example(string)
-// @Param   	 page_size     query     int     false  2     example(string)
-// @Success      200  {object}  data.GetOHLCResponse
-// @Failure      400  {object}  httputil.ErrorResponse
-// @Failure      500  {object}  httputil.ErrorResponse
-// @Router       /data [get]
+//
+//	@Summary		returns the OHLC points for the given time range
+//	@Description	The endpoint returns the OHLC points for a particular Symbol for  the given time range
+//	@Produce		json
+//	@Param			symbol		query		string	true	"This is the symbol of the OHLC token"			example(BTC)
+//	@Param			from		query		string	true	"UNIX time representation of the start time"	example(10344553332)
+//	@Param			to			query		string	false	"UNIX time representation of the end time"		example(101019283847)
+//	@Param			page		query		int		false	"page of response"								example(1)
+//	@Param			page_size	query		int		false	"Number of OHLC datapoints per page"			example(5)
+//	@Success		200			{object}	data.GetOHLCResponse
+//	@Failure		400			{object}	httputil.ErrorResponse
+//	@Failure		500			{object}	httputil.ErrorResponse
+//	@Router			/data [get]
 func (h *HTTPHandler) getOHLCDataHandler(c *gin.Context) error {
 	var query data.GetOHLCRequest
 	if err := c.ShouldBindQuery(&query); err != nil {
@@ -112,6 +111,12 @@ func (h *HTTPHandler) getOHLCDataHandler(c *gin.Context) error {
 }
 
 // generatePreSignedURLHandler generates a pre-signed URL for the given file name.
+//	@Summary		Generates a pre-signed URL for the given file name for uploading on S3
+//	@Description	The endpoint generates a pre-signed URL for the given file name for uploading on S3, It supports huge files
+//	@Success		200	{object}	data.GeneratePresignedURLResponse
+//	@Failure		400	{object}	httputil.ErrorResponse
+//	@Failure		500	{object}	httputil.ErrorResponse
+//	@Router			/generate_url [get]
 func (h *HTTPHandler) generatePreSignedURLHandler(c *gin.Context) error {
 	result, err := h.ohlcService.GeneratePreSignedURL(c)
 	if err != nil {

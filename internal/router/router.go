@@ -26,7 +26,7 @@ func New(
 // SetupRouter implements the gin.Server interface.
 func (r *Router) SetupRouter(router *gin.Engine) error {
 	r.router = router
-
+	r.router.Static("/docs", "./docs")
 	r.setupRoutes()
 
 	return nil

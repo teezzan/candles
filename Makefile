@@ -52,3 +52,8 @@ docker-down: ## Stop docker-compose
 .PHONY: test
 test: ## Run unit tests
 	go test -v -race ./cmd/... ./internal/...
+
+.PHONY: docs
+docs: ## Generates OpenAPI docs using https://github.com/swaggo/swag
+	swag fmt
+	swag init -g cmd/server/main.go
