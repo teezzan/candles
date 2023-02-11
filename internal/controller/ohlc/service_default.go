@@ -218,6 +218,7 @@ func (s *DefaultService) GeneratePreSignedURL(ctx context.Context) (*data.Genera
 // GetAndProcessSQSMessage gets to SQS queue and processes the message
 func (s *DefaultService) GetAndProcessSQSMessage(ctx context.Context) error {
 	filenames, err := s.sqsClient.GetFilenamesFromMessages(ctx)
+	s.logger.Info("filenames are", zap.Any("filenames", filenames))
 	if err != nil {
 		return err
 	}
@@ -245,6 +246,7 @@ func (s *DefaultService) DownloadAndProcessCSV(ctx context.Context, filename str
 	}
 
 	err = s.CreateDataPoints(ctx, csvData)
+	s.logger.Info("data points created", zap.Error(err))
 	if err != nil {
 		return err
 	}

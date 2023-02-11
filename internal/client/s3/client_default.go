@@ -46,7 +46,7 @@ func NewClient(
 		presignClient:        presignClient,
 		bucketName:           conf.Bucket,
 		region:               conf.Region,
-		presignURLExpiryTime: conf.PresignURLExpiryTime * 60,
+		presignURLExpiryTime: conf.PresignURLExpiryTime * 3600,
 	}, nil
 }
 

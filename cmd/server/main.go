@@ -21,6 +21,8 @@ func main() {
 	//init dependencies
 	conf := config.Init()
 
+	logger, _ := zap.NewProduction()
+	defer logger.Sync()
 	// Database
 	db, err := database.New(
 		conf.Database.Username,
@@ -34,11 +36,11 @@ func main() {
 	defer db.Close()
 
 	//Clients
-	s3Client, err := awsS3.NewClient(context.Background(), zap.NewNop(), conf.S3Config)
+	s3Client, err := awsS3.NewClient(context.Background(), logger, conf.S3Config)
 	if err != nil {
 		panic(err)
 	}
-	sqsClient, err := sqs.NewClient(context.Background(), zap.NewNop(), conf.SQSConfig)
+	sqsClient, err := sqs.NewClient(context.Background(), logger, conf.SQSConfig)
 	if err != nil {
 		panic(err)
 	}
@@ -47,10 +49,10 @@ func main() {
 	ohlcRepo := ohlcRepository.NewRepository(db.SQL)
 
 	// Services
-	ohlcService := ohlc.NewService(zap.NewNop(), ohlcRepo, s3Client, sqsClient, conf.OHLCConfig)
+	ohlcService := ohlc.NewService(logger, ohlcRepo, s3Client, sqsClient, conf.OHLCConfig)
 
 	// HTTP Handlers
-	ohlcHTTPHandler := ohlc.NewHTTPHandler(zap.NewNop(), ohlcService)
+	ohlcHTTPHandler := ohlc.NewHTTPHandler(logger, ohlcService)
 
 	// Router
 	r := router.New(
@@ -65,7 +67,7 @@ func main() {
 
 	c := cron.New()
 	c.AddFunc("@every 2m", func() {
-		zap.NewNop().Info("Processing SQS messages")
+		logger.Info("Processing SQS messages")
 		ohlcService.GetAndProcessSQSMessage(context.Background())
 	})
 	c.Start()
