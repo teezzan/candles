@@ -245,6 +245,10 @@ func (s *DefaultService) GetAndProcessSQSMessage(ctx context.Context) error {
 		return nil
 	}
 	for _, filename := range filenames {
+		s.repository.InsertProcessingStatus(ctx, data.ProcessingStatusEntity{
+			FileName: filename,
+			Status:   data.ProcessingStatusInProgress,
+		})
 		// Create Goroutines to process the files in parallel
 		go s.DownloadAndProcessCSV(ctx, filename)
 	}
@@ -256,19 +260,48 @@ func (s *DefaultService) GetAndProcessSQSMessage(ctx context.Context) error {
 func (s *DefaultService) DownloadAndProcessCSV(ctx context.Context, filename string) error {
 	s3FileData, err := s.s3Client.DownloadLargeObject(ctx, filename)
 	if err != nil {
+		s.UpdateProcessingStatus(ctx, filename, data.ProcessingStatusFailed, err)
 		return err
 	}
 
 	r := csv.NewReader(strings.NewReader(string(s3FileData)))
 	csvData, err := r.ReadAll()
 	if err != nil {
+		s.UpdateProcessingStatus(ctx, filename, data.ProcessingStatusFailed, err)
 		return err
 	}
 
 	err = s.CreateDataPoints(ctx, csvData)
-	s.logger.Info("data points created", zap.Error(err))
 	if err != nil {
+		s.UpdateProcessingStatus(ctx, filename, data.ProcessingStatusFailed, err)
 		return err
+	} else {
+		s.logger.Debug("data points created", zap.String("filename", filename))
 	}
+
+	s.UpdateProcessingStatus(ctx, filename, data.ProcessingStatusCompleted, nil)
 	return nil
+}
+
+// UpdateProcessingStatus updates the processing status of a file in the repository.
+func (s *DefaultService) UpdateProcessingStatus(ctx context.Context, filename string, status data.ProcessingStatus, err error) error {
+	p := data.ProcessingStatusEntity{
+		FileName: filename,
+		Status:   status,
+	}
+	if err != nil {
+		p.Error = null.NewString(err.Error())
+		s.logger.Error("error occurred", zap.String("filename", filename), zap.Error(err))
+	}
+	return s.repository.UpdateProcessingStatus(ctx, p)
+}
+
+// GetProcessingStatus returns the processing status of a file.
+func (s *DefaultService) GetProcessingStatus(ctx context.Context, filename string) (*data.ProcessingStatusEntity, error) {
+	return s.repository.GetProcessingStatus(ctx, filename)
+}
+
+// DeleteStaleProcessingStatus deletes processing status records older than the specified number of days.
+func (s *DefaultService) DeleteStaleProcessingStatus(ctx context.Context, days int) error {
+	return s.repository.RemoveStaleProcessingStatus(ctx, time.Now().AddDate(0, 0, -days))
 }

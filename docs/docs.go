@@ -65,19 +65,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/data.GetOHLCResponse"
+                            "$ref": "#/definitions/github_com_teezzan_candles_internal_controller_ohlc_data.GetOHLCResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/github_com_teezzan_candles_internal_httputil.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/github_com_teezzan_candles_internal_httputil.ErrorResponse"
                         }
                     }
                 }
@@ -94,7 +94,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "file",
-                        "description": "account image",
+                        "description": "CSV file to be processed",
                         "name": "file",
                         "in": "formData",
                         "required": true
@@ -107,13 +107,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/github_com_teezzan_candles_internal_httputil.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/github_com_teezzan_candles_internal_httputil.ErrorResponse"
                         }
                     }
                 }
@@ -127,19 +127,58 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/data.GeneratePresignedURLResponse"
+                            "$ref": "#/definitions/github_com_teezzan_candles_internal_controller_ohlc_data.GeneratePresignedURLResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/github_com_teezzan_candles_internal_httputil.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/github_com_teezzan_candles_internal_httputil.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/status/{filename}": {
+            "get": {
+                "description": "The endpoint returns the status of the file processing",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "returns the status of the file processing",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "\"7d2f5f5c-0b1a-4b1e-9c5e-1c2d3e4f5g6h.csv\"",
+                        "description": "This is the filename",
+                        "name": "filename",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_teezzan_candles_internal_controller_ohlc_data.ProcessingStatusEntity"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_teezzan_candles_internal_httputil.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_teezzan_candles_internal_httputil.ErrorResponse"
                         }
                     }
                 }
@@ -147,7 +186,7 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "data.GeneratePresignedURLResponse": {
+        "github_com_teezzan_candles_internal_controller_ohlc_data.GeneratePresignedURLResponse": {
             "type": "object",
             "properties": {
                 "filename": {
@@ -158,13 +197,13 @@ const docTemplate = `{
                 }
             }
         },
-        "data.GetOHLCResponse": {
+        "github_com_teezzan_candles_internal_controller_ohlc_data.GetOHLCResponse": {
             "type": "object",
             "properties": {
                 "data": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/data.OHLC"
+                        "$ref": "#/definitions/github_com_teezzan_candles_internal_controller_ohlc_data.OHLC"
                     }
                 },
                 "page": {
@@ -172,7 +211,7 @@ const docTemplate = `{
                 }
             }
         },
-        "data.OHLC": {
+        "github_com_teezzan_candles_internal_controller_ohlc_data.OHLC": {
             "type": "object",
             "properties": {
                 "close": {
@@ -195,7 +234,27 @@ const docTemplate = `{
                 }
             }
         },
-        "httputil.ErrorResponse": {
+        "github_com_teezzan_candles_internal_controller_ohlc_data.ProcessingStatusEntity": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "error": {
+                    "$ref": "#/definitions/github_com_teezzan_candles_internal_null.String"
+                },
+                "file_name": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_teezzan_candles_internal_httputil.ErrorResponse": {
             "type": "object",
             "properties": {
                 "code": {
@@ -203,6 +262,18 @@ const docTemplate = `{
                 },
                 "message": {
                     "type": "string"
+                }
+            }
+        },
+        "github_com_teezzan_candles_internal_null.String": {
+            "type": "object",
+            "properties": {
+                "string": {
+                    "type": "string"
+                },
+                "valid": {
+                    "description": "Valid is true if String is not NULL",
+                    "type": "boolean"
                 }
             }
         }

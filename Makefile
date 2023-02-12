@@ -60,7 +60,7 @@ test: ## Run unit tests
 .PHONY: docs
 docs: ## Generates OpenAPI docs using https://github.com/swaggo/swag
 	swag fmt
-	swag init -g cmd/server/main.go
+	swag init --parseDependency -g cmd/server/main.go
 
 .PHONY: migrations-up
 migrations-up:  ## Run migrations

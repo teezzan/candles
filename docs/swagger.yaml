@@ -1,22 +1,22 @@
 basePath: /
 definitions:
-  data.GeneratePresignedURLResponse:
+  github_com_teezzan_candles_internal_controller_ohlc_data.GeneratePresignedURLResponse:
     properties:
       filename:
         type: string
       url:
         type: string
     type: object
-  data.GetOHLCResponse:
+  github_com_teezzan_candles_internal_controller_ohlc_data.GetOHLCResponse:
     properties:
       data:
         items:
-          $ref: '#/definitions/data.OHLC'
+          $ref: '#/definitions/github_com_teezzan_candles_internal_controller_ohlc_data.OHLC'
         type: array
       page:
         type: integer
     type: object
-  data.OHLC:
+  github_com_teezzan_candles_internal_controller_ohlc_data.OHLC:
     properties:
       close:
         type: number
@@ -31,12 +31,33 @@ definitions:
       unix:
         type: integer
     type: object
-  httputil.ErrorResponse:
+  github_com_teezzan_candles_internal_controller_ohlc_data.ProcessingStatusEntity:
+    properties:
+      created_at:
+        type: string
+      error:
+        $ref: '#/definitions/github_com_teezzan_candles_internal_null.String'
+      file_name:
+        type: string
+      status:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  github_com_teezzan_candles_internal_httputil.ErrorResponse:
     properties:
       code:
         type: integer
       message:
         type: string
+    type: object
+  github_com_teezzan_candles_internal_null.String:
+    properties:
+      string:
+        type: string
+      valid:
+        description: Valid is true if String is not NULL
+        type: boolean
     type: object
 host: https://candles.onrender.com
 info:
@@ -83,15 +104,15 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/data.GetOHLCResponse'
+            $ref: '#/definitions/github_com_teezzan_candles_internal_controller_ohlc_data.GetOHLCResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/httputil.ErrorResponse'
+            $ref: '#/definitions/github_com_teezzan_candles_internal_httputil.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/httputil.ErrorResponse'
+            $ref: '#/definitions/github_com_teezzan_candles_internal_httputil.ErrorResponse'
       summary: returns the OHLC points for the given time range
     post:
       consumes:
@@ -99,7 +120,7 @@ paths:
       description: The endpoint takes a small CSV file upload and processes it. Max
         file size is 30MB.
       parameters:
-      - description: account image
+      - description: CSV file to be processed
         in: formData
         name: file
         required: true
@@ -112,11 +133,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/httputil.ErrorResponse'
+            $ref: '#/definitions/github_com_teezzan_candles_internal_httputil.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/httputil.ErrorResponse'
+            $ref: '#/definitions/github_com_teezzan_candles_internal_httputil.ErrorResponse'
       summary: Takes a CSV file upload and processes it
   /generate_url:
     get:
@@ -126,15 +147,41 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/data.GeneratePresignedURLResponse'
+            $ref: '#/definitions/github_com_teezzan_candles_internal_controller_ohlc_data.GeneratePresignedURLResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/httputil.ErrorResponse'
+            $ref: '#/definitions/github_com_teezzan_candles_internal_httputil.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/httputil.ErrorResponse'
+            $ref: '#/definitions/github_com_teezzan_candles_internal_httputil.ErrorResponse'
       summary: Generates a pre-signed URL for the given file name for uploading on
         S3
+  /status/{filename}:
+    get:
+      description: The endpoint returns the status of the file processing
+      parameters:
+      - description: This is the filename
+        example: '"7d2f5f5c-0b1a-4b1e-9c5e-1c2d3e4f5g6h.csv"'
+        in: path
+        name: filename
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_teezzan_candles_internal_controller_ohlc_data.ProcessingStatusEntity'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_teezzan_candles_internal_httputil.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_teezzan_candles_internal_httputil.ErrorResponse'
+      summary: returns the status of the file processing
 swagger: "2.0"

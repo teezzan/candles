@@ -75,6 +75,10 @@ func main() {
 		logger.Info("Processing SQS messages")
 		ohlcService.GetAndProcessSQSMessage(context.Background())
 	})
+	c.AddFunc(fmt.Sprintf("@every %dd", conf.CleanupCronJobFrequencyInDays), func() {
+		logger.Info("Cleaning up old data")
+		ohlcService.DeleteStaleProcessingStatus(context.Background(), conf.CleanupCronJobFrequencyInDays)
+	})
 	c.Start()
 
 	// Listen and Serve

@@ -9,6 +9,7 @@ type Config struct {
 	S3Config                  S3Config
 	SQSConfig                 SQSConfig
 	CronJobFrequencyInMinutes int
+	CleanupCronJobFrequencyInDays int
 }
 
 type DatabaseConfig struct {
@@ -67,6 +68,8 @@ func Init() *Config {
 			Queue:  util.GetString("SQS_QUEUE", defaultSQSQueue),
 		},
 		CronJobFrequencyInMinutes: util.GetInt("CRON_JOB_FREQUENCY_IN_MINUTES", defaultCronJobFrequencyInMinutes),
+		CleanupCronJobFrequencyInDays: util.GetInt("CLEANUP_CRON_JOB_FREQUENCY_IN_DAYS", defaultCleanupCronJobFrequencyInDays),
+		
 	}
 
 }

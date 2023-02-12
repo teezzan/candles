@@ -29,4 +29,8 @@ var (
 			Name: UnixFieldName,
 		},
 	}
+
+	ProcessingStatusInProgress ProcessingStatus = "IN_PROGRESS"
+	ProcessingStatusCompleted  ProcessingStatus = "COMPLETED"
+	ProcessingStatusFailed     ProcessingStatus = "FAILED"
 )
