@@ -6,8 +6,6 @@
         "contact": {},
         "version": "1.0"
     },
-    "host": "https://candles.onrender.com",
-    "basePath": "/",
     "paths": {
         "/data": {
             "get": {
