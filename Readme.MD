@@ -18,9 +18,9 @@
 ## Images
 
 <details>
-<summary>Here are samples.</summary>
+<summary>Here is a samples.</summary>
 
-![docs](./images/openAPI.png)
+![docs](./docs/openAPI.png)
 
 </details>
 
@@ -82,7 +82,7 @@ Foremost, you have to clone this repository and install all the dependencies wit
 ```bash
 git clone https://github.com/teezzan/candles.git
 cd candles
-go get ./...
+go mod download
 make deps
 make migrations-up
 ```
