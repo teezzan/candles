@@ -33,7 +33,10 @@ func NewClient(
 	conf config.S3Config,
 
 ) (*DefaultClient, error) {
-	sdkConfig, err := s3Config.LoadDefaultConfig(ctx)
+	sdkConfig, err := s3Config.LoadDefaultConfig(ctx, func(lo *s3Config.LoadOptions) error {
+		lo.Region = conf.Region
+		return nil
+	})
 	if err != nil {
 		return nil, err
 	}
