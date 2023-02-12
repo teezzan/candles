@@ -452,6 +452,9 @@ func TestDefaultService_GetAndProcessSQSMessage(t *testing.T) {
 					InsertProcessingStatusFunc: func(ctx context.Context, status data.ProcessingStatusEntity) error {
 						return nil
 					},
+					UpdateProcessingStatusFunc: func(ctx context.Context, status data.ProcessingStatusEntity) error {
+						return nil
+					},
 				}
 			)
 			conf := config.Init()
