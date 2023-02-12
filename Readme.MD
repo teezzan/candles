@@ -1,28 +1,21 @@
-# Candles
-
-## The Ultimate OHLC API.
+# Candles - The Ultimate OHLC API
 
 ![Logo](./docs/logo.png)
 
-> **Candles** has the following features
+Candles is a highly scalable OHLC API with the following features:
 
-- [x] Upload OHLC file in CSV format to be processed and stored.
-- [x] Granulated fetch based on Symbol and time range.
-- [x] Highly scalable process pipeline of very large CSV files using AWS S3 and SQS queues.
-- [x] Easy to setup
-- [x] Documentation with [OpenAPI](https://leaguey.herokuapp.com/swagger-html) (https://leaguey.herokuapp.com/swagger-html).
-- [ ] Caching of results for efficiency
+- Upload OHLC file in CSV format to be processed and stored
+- Granulated fetch based on Symbol and time range
+- Process pipeline for very large CSV files using AWS S3 and SQS queues
+- Easy setup
+- Documentation with OpenAPI (https://candles.onrender.com/docs/)
 
-**Note**: **I have a deployed version of the aplication found [here on Heroku](https://leaguey.herokuapp.com/swagger-html)**
+## Deployment
 
-## Images
+This application can be deployed locally in two ways:
 
-<details>
-<summary>Here is a samples.</summary>
-
-![docs](./docs/openAPI.png)
-
-</details>
+- Using `docker-compose`
+- Using the local environment
 
 ## Built With
 
@@ -41,29 +34,42 @@ This application can be deployed locally by the following ways.
 
 ### Prerequisites
 
-You require a `.env` file to get the application running on your local computer. A sample `env` file is as follows.
+To run the application on your local computer, you need a .env file containing the following:
 
 ```
 ## Database Configuration
 DB_HOST=localhost
-DB_NAME=candles
+DB_NAME=ohlc
 DB_USERNAME=root
 DB_PASSWORD=mysqltest
 DB_PORT=3306
 
 
 ## Server Configuration
+SERVER_HOST=localhost
 SERVER_PORT=8090
 
-## AWS Configurations
+## AWS Configuration
 AWS_ACCESS_KEY_ID=AKIAJ4Z7Z7Z7Z7Z7Z7Z7
 AWS_SECRET_ACCESS_KEY=pw777yyh777h66+ff777777777777777777777777
 
+# AWS S3 Bucket Configuration
+S3_REGION=
+S3_BUCKET=
+S3_PRESIGN_URL_EXPIRY_TIME=
+
+# AWS SQS Configuration
+SQS_REGION=
+SQS_QUEUE=
+
+# Cron Job Configuration
+CRON_JOB_FREQUENCY_IN_MINUTES=
+
 ```
 
-You can make a copy of the provided `.env.example` file, rename it as `.env` and populate it with the appropriate vales. Ensure that the `.env` file contains the necessary credentials. The system will not start if important credentials like `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` are not present. Other credentials have a reasonable default set in the app. These can found in `internal/config/defaults.go`.
+A sample .env file named `.env.example` is provided. You can make a copy, rename it to `.env`, and update the values. The system will not start if important credentials, such as `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`, are missing. The default values for other credentials can be found in `internal/config/defaults.go`.
 
-You may also need to have Docker installed if you wish to follow that path.
+You may also need to have Docker installed to use the docker-compose method.
 
 ### Docker-compose
 
@@ -77,19 +83,17 @@ Ensure that the `.env` file contains the necessary credentials.
 
 ### Local Environment
 
-Foremost, you have to clone this repository and install all the dependencies with the following commands.
+To deploy the application locally, follow these steps:
 
-```bash
-git clone https://github.com/teezzan/candles.git
-cd candles
-go get ./...
-make deps
-make migrations-up
-```
+- Clone the repository: `git clone https://github.com/teezzan/candles.git`
+- Navigate to the project directory: `cd candles`
+- Install dependencies: `go get ./... && make deps`
+- Create the database: `make migrations-up`
+- Start the local server: `make serve`
 
-**Note**: `DB_NAME` will not be created automatically and would need to ba manually created.
+Note: The database name specified in DB_NAME must be created manually.
 
-Run `make serve` to start the local server.
+To view the available make commands, run make help.
 
 ### Make Commands
 
@@ -118,7 +122,9 @@ $ make help
 
 ## API Reference/Documentation
 
-A swagger documentation can be found at `http://localhost:3000/swagger-html`
+The API reference and documentation are available in swagger format on [Render](https://candles.onrender.com/docs/) or locally at `http://localhost:3000/docs`
+
+![docs](./docs/openAPI.png)
 
 ## Authors
 
