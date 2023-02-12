@@ -106,12 +106,14 @@ $ make help
     deps-moq                       Install build dependencies: moq
     deps-godotenv                  Install build dependencies: godotenv
     deps-swag                      Install build dependencies: Swag
+    deps-migrate                   Install build dependencies: Migrate
     image                          Create Docker image
     docker-only-up                 Start Docker image
     docker-up                      Start docker-compose
     docker-down                    Stop docker-compose
     test                           Run unit tests
     docs                           Generates OpenAPI docs using https://github.com/swaggo/swag
+    migrations-up                  Run migrations
 ```
 
 ## API Reference/Documentation
