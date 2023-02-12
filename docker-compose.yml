@@ -24,6 +24,7 @@ services:
      ]
     command: ["./startup.sh", "./server"]
     init: true
+    env_file: .env
     environment:
       DB_NAME: 'ohlc'
       DB_PASSWORD: 'mysqltest'

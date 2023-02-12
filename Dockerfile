@@ -38,9 +38,6 @@ COPY --from=build /go/src/app/startup.sh ./startup.sh
 COPY --from=build /go/src/app/migrate ./migrate
 COPY --from=build /go/src/app/await ./await
 
-# Download git, needed for go mod download with GOPRIVATE=.
-RUN apk add --update --no-cache curl 
-
 EXPOSE 8090
 
 ENTRYPOINT ["./startup.sh", "./server"]

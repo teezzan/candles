@@ -1,4 +1,4 @@
-PROJECT_NAME:=ohlc
+PROJECT_NAME:=candles
 
 .PHONY: all
 all: help
@@ -19,7 +19,7 @@ build:  ## Build application binaries
 	go build -race -o ./bin/server ./cmd/server
 
 .PHONY: deps
-deps: deps-godotenv deps-moq deps-swag ## Install build dependencies
+deps: deps-godotenv deps-moq deps-swag deps-migrate ## Install build dependencies
 
 .PHONY: deps-moq
 deps-moq: ## Install build dependencies: moq
@@ -33,12 +33,16 @@ deps-godotenv: ## Install build dependencies: godotenv
 deps-swag: ## Install build dependencies: Swag
 	@which -s swag || go install github.com/swaggo/swag/cmd/swag@v1.8.10
 
+.PHONY: deps-migrate
+deps-migrate: ## Install build dependencies: Migrate
+	@which -s migrate || go install -tags 'mysql' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
+
 .PHONY: image
 image: ## Create Docker image
 	docker build --no-cache -t ohlc .
 
 .PHONY: docker-only-up
-docker-only-up: ## Create Docker image
+docker-only-up: ## Start Docker image
 	docker run --env-file .env --publish 8090:8090 ohlc:latest
 
 .PHONY: docker-up
@@ -57,3 +61,7 @@ test: ## Run unit tests
 docs: ## Generates OpenAPI docs using https://github.com/swaggo/swag
 	swag fmt
 	swag init -g cmd/server/main.go
+
+.PHONY: migrations-up
+migrations-up:  ## Run migrations
+	godotenv -f .env ./scripts/migrate.sh

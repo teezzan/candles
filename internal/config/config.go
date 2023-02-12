@@ -42,28 +42,28 @@ type SQSConfig struct {
 func Init() *Config {
 	return &Config{
 		Database: DatabaseConfig{
-			Host:     util.GetString("DB_HOST", "localhost"),
-			Port:     util.GetInt("DB_PORT", 5432),
-			Username: util.GetString("DB_USERNAME", "root"),
-			Password: util.GetString("DB_PASSWORD", "root"),
-			Database: util.GetString("DB_NAME", "ohlc"),
+			Host:     util.GetString("DB_HOST", defaultDBHost),
+			Port:     util.GetInt("DB_PORT", defaultDBPort),
+			Username: util.GetString("DB_USERNAME", defaultDBUsername),
+			Password: util.GetString("DB_PASSWORD", defaultDBPassword),
+			Database: util.GetString("DB_NAME", defaultDBName),
 		},
 		Server: ServerConfig{
-			Host: util.GetString("SERVER_HOST", "localhost"),
-			Port: util.GetInt("SERVER_PORT", 8090),
+			Host: util.GetString("SERVER_HOST", defaultServerHost),
+			Port: util.GetInt("SERVER_PORT", defaultServerPort),
 		},
 		OHLCConfig: OHLCConfig{
-			DiscardInCompleteRow:  util.GetBool("OHLC_DISCARD_INCOMPLETE_ROW", false),
-			DefaultDataPointLimit: util.GetInt("OHLC_DATA_POINT_LIMIT", 100),
+			DiscardInCompleteRow:  util.GetBool("OHLC_DISCARD_INCOMPLETE_ROW", defaultDiscardInCompleteRow),
+			DefaultDataPointLimit: util.GetInt("OHLC_DATA_POINT_LIMIT", defaultDataPointLimit),
 		},
 		S3Config: S3Config{
-			Region:               util.GetString("S3_REGION", "us-east-1"),
-			Bucket:               util.GetString("S3_BUCKET", "coiny-data-bucket"),
-			PresignURLExpiryTime: util.GetInt("S3_PRESIGN_URL_EXPIRY_TIME", 2), //in hours
+			Region:               util.GetString("S3_REGION", defaultS3Region),
+			Bucket:               util.GetString("S3_BUCKET", defaultS3Bucket),
+			PresignURLExpiryTime: util.GetInt("S3_PRESIGN_URL_EXPIRY_TIME", defaultS3PresignURLExpiryTime),
 		},
 		SQSConfig: SQSConfig{
-			Region: util.GetString("SQS_REGION", "us-east-1"),
-			Queue:  util.GetString("SQS_QUEUE", "candle-files-notification-fifo"),
+			Region: util.GetString("SQS_REGION", defaultSQSRegion),
+			Queue:  util.GetString("SQS_QUEUE", defaultSQSQueue),
 		},
 	}
 
