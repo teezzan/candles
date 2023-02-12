@@ -382,6 +382,9 @@ func TestDefaultService_DownloadAndProcessCSV(t *testing.T) {
 					InsertDataPointsFunc: func(ctx context.Context, rows []data.OHLCEntity) error {
 						return nil
 					},
+					UpdateProcessingStatusFunc: func(ctx context.Context, status data.ProcessingStatusEntity) error {
+						return nil
+					},
 				}
 			)
 			conf := config.Init()
@@ -444,6 +447,9 @@ func TestDefaultService_GetAndProcessSQSMessage(t *testing.T) {
 				}
 				mockRepository = &repository.RepositoryMock{
 					InsertDataPointsFunc: func(ctx context.Context, rows []data.OHLCEntity) error {
+						return nil
+					},
+					InsertProcessingStatusFunc: func(ctx context.Context, status data.ProcessingStatusEntity) error {
 						return nil
 					},
 				}
