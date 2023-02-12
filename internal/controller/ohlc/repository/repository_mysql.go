@@ -2,9 +2,11 @@ package repository
 
 import (
 	"context"
+	"database/sql"
 	"time"
 
 	"github.com/jmoiron/sqlx"
+	E "github.com/teezzan/candles/internal/errors"
 	"github.com/teezzan/candles/internal/controller/ohlc/data"
 )
 
@@ -20,7 +22,9 @@ func NewRepository(db *sqlx.DB) *MySQLRepository {
 	return &MySQLRepository{db}
 }
 
-// InsertDataPoints creates OHLC points
+// InsertDataPoints inserts a slice of data.OHLCEntity rows into the ohlc_data table of the MySQL repository.
+// It uses NamedExecContext to bind the values in the sql statement.
+// It returns an error if it failed to insert the data into the table.
 func (r *MySQLRepository) InsertDataPoints(ctx context.Context, rows []data.OHLCEntity) error {
 	stmt := `
 	INSERT INTO ohlc_data
@@ -47,7 +51,9 @@ func (r *MySQLRepository) InsertDataPoints(ctx context.Context, rows []data.OHLC
 	return nil
 }
 
-// GetDataPoints returns OHLC points for a given symbol and time range with pagination
+// GetDataPoints retrieves OHLC data points from the database for a given symbol and time range
+// It returns a slice of OHLCEntity structs with data for a given symbol between the start and end times
+// The result is paginated with page number and page size parameters
 func (r *MySQLRepository) GetDataPoints(ctx context.Context, payload data.GetOHLCRequest) ([]data.OHLCEntity, error) {
 	stmt := `
 	SELECT
@@ -78,4 +84,85 @@ func (r *MySQLRepository) GetDataPoints(ctx context.Context, payload data.GetOHL
 		return nil, err
 	}
 	return ohlcPoints, nil
+}
+
+// GetProcessingStatus retrieves the processing status of a file from the database
+// It returns a ProcessingStatusEntity struct with the status of the file
+func (r *MySQLRepository) GetProcessingStatus(ctx context.Context, fileName string) (*data.ProcessingStatusEntity, error) {
+	stmt := `
+	SELECT
+		file_name,
+		status,
+		created_at,
+		updated_at
+	FROM
+		process_status
+	WHERE
+		file_name = ?
+	`
+	var status data.ProcessingStatusEntity
+
+	err := r.GetContext(ctx, &status, stmt, fileName)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, E.NewErrEntityNotFound("file", fileName)
+		}
+		return nil, err
+	}
+	return &status, nil
+}
+
+// InsertProcessingStatus inserts a ProcessingStatusEntity struct into the process_status table of the MySQL repository.
+// It uses NamedExecContext to bind the values in the sql statement.
+// It returns an error if it failed to insert the data into the table.
+func (r *MySQLRepository) InsertProcessingStatus(ctx context.Context, status data.ProcessingStatusEntity) error {
+	stmt := `
+	INSERT INTO process_status
+		(
+			file_name,
+			status
+		) VALUES (
+			:file_name,
+			:status
+		);
+	`
+	_, err := r.NamedExecContext(ctx, stmt, status)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+	
+// UpdateProcessingStatus updates the status of a file in the process_status table of the MySQL repository.
+// It uses NamedExecContext to bind the values in the sql statement.
+// It returns an error if it failed to update the status of the file in the table.
+func (r *MySQLRepository) UpdateProcessingStatus(ctx context.Context, status data.ProcessingStatusEntity) error {
+	stmt := `
+	UPDATE process_status
+	SET
+		status = :status,
+	WHERE
+		file_name = :file_name
+	`
+	_, err := r.NamedExecContext(ctx, stmt, status)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// RemoveStaleProcessingStatus removes stale entries from the process_status table of the MySQL repository.
+// It uses NamedExecContext to bind the values in the sql statement.
+// It returns an error if it failed to remove the stale entries from the table.
+func (r *MySQLRepository) RemoveStaleProcessingStatus(ctx context.Context, staleTime time.Time) error {
+	stmt := `
+	DELETE FROM process_status
+	WHERE
+		updated_at <= ?
+	`
+	_, err := r.ExecContext(ctx, stmt, staleTime)
+	if err != nil {
+		return err
+	}
+	return nil
 }

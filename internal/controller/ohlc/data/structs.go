@@ -44,6 +44,18 @@ func (p *OHLCEntity) IsInComplete() bool {
 	return p.Time.IsZero() || p.Symbol == "" || p.Open == 0 || p.High == 0 || p.Close == 0 || p.Low == 0
 }
 
+// ProcessingStatus defines the uploaded file processing status.
+type ProcessingStatus string
+
+// ProcessingStatusEntity defines the uploaded file processing status entity.
+type ProcessingStatusEntity struct {
+	ID        int64            `db:"id" json:"-"`
+	FileName  string           `db:"file_name" json:"file_name"`
+	Status    ProcessingStatus `db:"status" json:"status"`
+	CreatedAt time.Time        `db:"created_at" json:"created_at"`
+	UpdatedAt time.Time        `db:"updated_at" json:"updated_at"`
+}
+
 // OHLCFieldName defines the OHLC Field name.
 type OHLCFieldName string
 
