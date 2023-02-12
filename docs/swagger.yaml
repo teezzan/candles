@@ -38,7 +38,7 @@ definitions:
       message:
         type: string
     type: object
-host: localhost:8080
+host: https://candles.onrender.com
 info:
   contact: {}
   description: This is API specification for Candels, a OHLC data API platform.
