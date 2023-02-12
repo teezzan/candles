@@ -22,6 +22,7 @@ COPY go.sum ./
 COPY ./cmd ./cmd
 COPY ./db ./db
 COPY ./internal ./internal
+COPY ./docs ./docs
 COPY ./scripts/startup.sh ./startup.sh
 
 RUN CGO_ENABLED=0 go build -o /go/bin/server ./cmd/server
@@ -34,6 +35,7 @@ WORKDIR /app
 
 COPY --from=build /go/bin/server ./server
 COPY --from=build /go/src/app/db ./db
+COPY --from=build /go/src/app/docs ./docs
 COPY --from=build /go/src/app/startup.sh ./startup.sh
 COPY --from=build /go/src/app/migrate ./migrate
 COPY --from=build /go/src/app/await ./await
