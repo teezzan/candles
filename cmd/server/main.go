@@ -20,7 +20,7 @@ import (
 //	@title			Candles API
 //	@description	This is API specification for Candels, a OHLC data API platform.
 //	@version		1.0
-//	@host			https://candles.onrender.com
+//	@host			candles.onrender.com
 //	@BasePath		/
 func main() {
 	//init dependencies
