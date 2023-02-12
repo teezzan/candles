@@ -1,6 +1,5 @@
 package config
 
-
 const (
 	//defaultDBHost is the default database host
 	defaultDBHost = "localhost"
@@ -19,19 +18,21 @@ const (
 	defaultServerPort = 8090
 
 	//defaultDiscardInCompleteRow is the default value for discard incomplete row
-	defaultDiscardInCompleteRow = false	
+	defaultDiscardInCompleteRow = false
 	// defaultDataPointLimit is the default value for data point limit
 	defaultDataPointLimit = 100
 
 	//defaultS3Region is the default value for s3 region
-	defaultS3Region = "eu-east-1"
+	defaultS3Region = "eu-west-1"
 	//defaultS3Bucket is the default value for s3 bucket
 	defaultS3Bucket = "coiny-data-bucket"
 	//defaultS3PresignURLExpiryTime is the default value for s3 presign url expiry time in hours
 	defaultS3PresignURLExpiryTime = 2
 
 	//defaultSQSRegion is the default value for sqs region
-	defaultSQSRegion = "eu-east-1"
+	defaultSQSRegion = "eu-west-1"
 	//defaultSQSQueue is the default value for sqs queue
 	defaultSQSQueue = "candle-files-notification-fifo"
-	)
+	// defaultCronJobFrequencyInMinutes is the default value for cron job frequency in minutes
+	defaultCronJobFrequencyInMinutes = 2
+)

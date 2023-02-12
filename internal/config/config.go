@@ -3,11 +3,12 @@ package config
 import "github.com/teezzan/ohlc/internal/util"
 
 type Config struct {
-	Database   DatabaseConfig
-	Server     ServerConfig
-	OHLCConfig OHLCConfig
-	S3Config   S3Config
-	SQSConfig  SQSConfig
+	Database                  DatabaseConfig
+	Server                    ServerConfig
+	OHLCConfig                OHLCConfig
+	S3Config                  S3Config
+	SQSConfig                 SQSConfig
+	CronJobFrequencyInMinutes int
 }
 
 type DatabaseConfig struct {
@@ -65,6 +66,7 @@ func Init() *Config {
 			Region: util.GetString("SQS_REGION", defaultSQSRegion),
 			Queue:  util.GetString("SQS_QUEUE", defaultSQSQueue),
 		},
+		CronJobFrequencyInMinutes: util.GetInt("CRON_JOB_FREQUENCY_IN_MINUTES", defaultCronJobFrequencyInMinutes),
 	}
 
 }

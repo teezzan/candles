@@ -39,7 +39,9 @@ func NewClient(
 	}
 
 	// Get URL of queue
-	urlResult, err := client.GetQueueUrl(ctx, gQInput)
+	urlResult, err := client.GetQueueUrl(ctx, gQInput, func(o *sqs.Options) {
+		o.Region = conf.Region
+	})
 	if err != nil {
 		return nil, err
 	}
