@@ -142,7 +142,7 @@ func (r *MySQLRepository) UpdateProcessingStatus(ctx context.Context, status dat
 	UPDATE process_status
 	SET
 		status = :status,
-		error = :error,
+		error = :error
 	WHERE
 		file_name = :file_name
 	`

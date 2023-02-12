@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/teezzan/candles/internal/controller/ohlc/data"
+	E "github.com/teezzan/candles/internal/errors"
 	"github.com/teezzan/candles/internal/httputil"
 	"go.uber.org/zap"
 )
@@ -44,7 +45,7 @@ func (h *HTTPHandler) SetupRouter(r *gin.RouterGroup) error {
 //	@Description	The endpoint takes a small CSV file upload and processes it. Max file size is 30MB.
 //	@Accept			multipart/form-data
 //	@Produce		json
-//	@Param			file	formData	file	true	"account image"
+//	@Param			file	formData	file	true	"CSV file to be processed"
 //	@Success		200
 //	@Failure		400	{object}	httputil.ErrorResponse
 //	@Failure		500	{object}	httputil.ErrorResponse
@@ -133,7 +134,7 @@ func (h *HTTPHandler) generatePreSignedURLHandler(c *gin.Context) error {
 //	@Summary		returns the status of the file processing
 //	@Description	The endpoint returns the status of the file processing
 //	@Produce		json
-//	@Param			filename		path		string	true	"This is the filename"			example("7d2f5f5c-0b1a-4b1e-9c5e-1c2d3e4f5g6h.csv")
+//	@Param			filename	path		string	true	"This is the filename"	example("7d2f5f5c-0b1a-4b1e-9c5e-1c2d3e4f5g6h.csv")
 //	@Success		200			{object}	data.ProcessingStatusEntity
 //	@Failure		400			{object}	httputil.ErrorResponse
 //	@Failure		500			{object}	httputil.ErrorResponse
@@ -142,6 +143,9 @@ func (h *HTTPHandler) getFileProcessingStatusHandler(c *gin.Context) error {
 	filename := c.Param("filename")
 	status, err := h.ohlcService.GetProcessingStatus(c, filename)
 	if err != nil {
+		if E.IsErrEntityNotFound(err) {
+			return httputil.NotFound(c, err)
+		}
 		return err
 	}
 	return httputil.OK(c, status)

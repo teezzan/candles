@@ -245,7 +245,10 @@ func (s *DefaultService) GetAndProcessSQSMessage(ctx context.Context) error {
 		return nil
 	}
 	for _, filename := range filenames {
-		s.UpdateProcessingStatus(ctx, filename, data.ProcessingStatusInProgress, nil)
+		s.repository.InsertProcessingStatus(ctx, data.ProcessingStatusEntity{
+			FileName: filename,
+			Status:   data.ProcessingStatusInProgress,
+		})
 		// Create Goroutines to process the files in parallel
 		go s.DownloadAndProcessCSV(ctx, filename)
 	}
