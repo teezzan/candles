@@ -33,6 +33,7 @@ func (h *HTTPHandler) SetupRouter(r *gin.RouterGroup) error {
 	r.POST("/data", handler(h.processCSVHandler))
 	r.GET("/data", handler(h.getOHLCDataHandler))
 	r.GET("/generate_url", handler(h.generatePreSignedURLHandler))
+	r.GET("/status/:filename", handler(h.getFileProcessingStatusHandler))
 
 	return nil
 }
@@ -125,4 +126,23 @@ func (h *HTTPHandler) generatePreSignedURLHandler(c *gin.Context) error {
 	}
 
 	return httputil.OK(c, result)
+}
+
+// getFileProcessingStatusHandler gets the file processing status.
+//
+//	@Summary		returns the status of the file processing
+//	@Description	The endpoint returns the status of the file processing
+//	@Produce		json
+//	@Param			filename		path		string	true	"This is the filename"			example("7d2f5f5c-0b1a-4b1e-9c5e-1c2d3e4f5g6h.csv")
+//	@Success		200			{object}	data.ProcessingStatusEntity
+//	@Failure		400			{object}	httputil.ErrorResponse
+//	@Failure		500			{object}	httputil.ErrorResponse
+//	@Router			/status/{filename} [get]
+func (h *HTTPHandler) getFileProcessingStatusHandler(c *gin.Context) error {
+	filename := c.Param("filename")
+	status, err := h.ohlcService.GetProcessingStatus(c, filename)
+	if err != nil {
+		return err
+	}
+	return httputil.OK(c, status)
 }

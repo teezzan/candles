@@ -17,11 +17,11 @@ import (
 	"go.uber.org/zap"
 )
 
-//	@title			Candles API
-//	@description	This is API specification for Candels, a OHLC data API platform.
-//	@version		1.0
-//	@host			https://candles.onrender.com
-//	@BasePath		/
+// @title			Candles API
+// @description	This is API specification for Candels, a OHLC data API platform.
+// @version		1.0
+// @host			https://candles.onrender.com
+// @BasePath		/
 func main() {
 	//init dependencies
 	conf := config.Init()
@@ -74,6 +74,10 @@ func main() {
 	c.AddFunc(fmt.Sprintf("@every %dm", conf.CronJobFrequencyInMinutes), func() {
 		logger.Info("Processing SQS messages")
 		ohlcService.GetAndProcessSQSMessage(context.Background())
+	})
+	c.AddFunc(fmt.Sprintf("@every %dd", conf.CleanupCronJobFrequencyInDays), func() {
+		logger.Info("Cleaning up old data")
+		ohlcService.DeleteStaleProcessingStatus(context.Background(), conf.CleanupCronJobFrequencyInDays)
 	})
 	c.Start()
 

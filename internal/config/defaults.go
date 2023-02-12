@@ -35,4 +35,6 @@ const (
 	defaultSQSQueue = "candle-files-notification-fifo"
 	// defaultCronJobFrequencyInMinutes is the default value for cron job frequency in minutes
 	defaultCronJobFrequencyInMinutes = 2
+	// defaultCleanupCronJobFrequencyInDays is the default value for cleanup of stale data processing status in days
+	defaultCleanupCronJobFrequencyInDays = 1
 )

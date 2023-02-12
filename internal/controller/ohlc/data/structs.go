@@ -52,6 +52,7 @@ type ProcessingStatusEntity struct {
 	ID        int64            `db:"id" json:"-"`
 	FileName  string           `db:"file_name" json:"file_name"`
 	Status    ProcessingStatus `db:"status" json:"status"`
+	Error     null.String      `db:"error" json:"error,omitempty"`
 	CreatedAt time.Time        `db:"created_at" json:"created_at"`
 	UpdatedAt time.Time        `db:"updated_at" json:"updated_at"`
 }

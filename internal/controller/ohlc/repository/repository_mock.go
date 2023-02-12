@@ -7,6 +7,7 @@ import (
 	"context"
 	"github.com/teezzan/candles/internal/controller/ohlc/data"
 	"sync"
+	"time"
 )
 
 // Ensure, that RepositoryMock does implement Repository.
@@ -22,8 +23,20 @@ var _ Repository = &RepositoryMock{}
 //			GetDataPointsFunc: func(ctx context.Context, payload data.GetOHLCRequest) ([]data.OHLCEntity, error) {
 //				panic("mock out the GetDataPoints method")
 //			},
+//			GetProcessingStatusFunc: func(ctx context.Context, fileName string) (*data.ProcessingStatusEntity, error) {
+//				panic("mock out the GetProcessingStatus method")
+//			},
 //			InsertDataPointsFunc: func(ctx context.Context, rows []data.OHLCEntity) error {
 //				panic("mock out the InsertDataPoints method")
+//			},
+//			InsertProcessingStatusFunc: func(ctx context.Context, status data.ProcessingStatusEntity) error {
+//				panic("mock out the InsertProcessingStatus method")
+//			},
+//			RemoveStaleProcessingStatusFunc: func(ctx context.Context, staleTime time.Time) error {
+//				panic("mock out the RemoveStaleProcessingStatus method")
+//			},
+//			UpdateProcessingStatusFunc: func(ctx context.Context, status data.ProcessingStatusEntity) error {
+//				panic("mock out the UpdateProcessingStatus method")
 //			},
 //		}
 //
@@ -35,8 +48,20 @@ type RepositoryMock struct {
 	// GetDataPointsFunc mocks the GetDataPoints method.
 	GetDataPointsFunc func(ctx context.Context, payload data.GetOHLCRequest) ([]data.OHLCEntity, error)
 
+	// GetProcessingStatusFunc mocks the GetProcessingStatus method.
+	GetProcessingStatusFunc func(ctx context.Context, fileName string) (*data.ProcessingStatusEntity, error)
+
 	// InsertDataPointsFunc mocks the InsertDataPoints method.
 	InsertDataPointsFunc func(ctx context.Context, rows []data.OHLCEntity) error
+
+	// InsertProcessingStatusFunc mocks the InsertProcessingStatus method.
+	InsertProcessingStatusFunc func(ctx context.Context, status data.ProcessingStatusEntity) error
+
+	// RemoveStaleProcessingStatusFunc mocks the RemoveStaleProcessingStatus method.
+	RemoveStaleProcessingStatusFunc func(ctx context.Context, staleTime time.Time) error
+
+	// UpdateProcessingStatusFunc mocks the UpdateProcessingStatus method.
+	UpdateProcessingStatusFunc func(ctx context.Context, status data.ProcessingStatusEntity) error
 
 	// calls tracks calls to the methods.
 	calls struct {
@@ -47,6 +72,13 @@ type RepositoryMock struct {
 			// Payload is the payload argument value.
 			Payload data.GetOHLCRequest
 		}
+		// GetProcessingStatus holds details about calls to the GetProcessingStatus method.
+		GetProcessingStatus []struct {
+			// Ctx is the ctx argument value.
+			Ctx context.Context
+			// FileName is the fileName argument value.
+			FileName string
+		}
 		// InsertDataPoints holds details about calls to the InsertDataPoints method.
 		InsertDataPoints []struct {
 			// Ctx is the ctx argument value.
@@ -54,9 +86,34 @@ type RepositoryMock struct {
 			// Rows is the rows argument value.
 			Rows []data.OHLCEntity
 		}
+		// InsertProcessingStatus holds details about calls to the InsertProcessingStatus method.
+		InsertProcessingStatus []struct {
+			// Ctx is the ctx argument value.
+			Ctx context.Context
+			// Status is the status argument value.
+			Status data.ProcessingStatusEntity
+		}
+		// RemoveStaleProcessingStatus holds details about calls to the RemoveStaleProcessingStatus method.
+		RemoveStaleProcessingStatus []struct {
+			// Ctx is the ctx argument value.
+			Ctx context.Context
+			// StaleTime is the staleTime argument value.
+			StaleTime time.Time
+		}
+		// UpdateProcessingStatus holds details about calls to the UpdateProcessingStatus method.
+		UpdateProcessingStatus []struct {
+			// Ctx is the ctx argument value.
+			Ctx context.Context
+			// Status is the status argument value.
+			Status data.ProcessingStatusEntity
+		}
 	}
-	lockGetDataPoints    sync.RWMutex
-	lockInsertDataPoints sync.RWMutex
+	lockGetDataPoints               sync.RWMutex
+	lockGetProcessingStatus         sync.RWMutex
+	lockInsertDataPoints            sync.RWMutex
+	lockInsertProcessingStatus      sync.RWMutex
+	lockRemoveStaleProcessingStatus sync.RWMutex
+	lockUpdateProcessingStatus      sync.RWMutex
 }
 
 // GetDataPoints calls GetDataPointsFunc.
@@ -95,6 +152,42 @@ func (mock *RepositoryMock) GetDataPointsCalls() []struct {
 	return calls
 }
 
+// GetProcessingStatus calls GetProcessingStatusFunc.
+func (mock *RepositoryMock) GetProcessingStatus(ctx context.Context, fileName string) (*data.ProcessingStatusEntity, error) {
+	if mock.GetProcessingStatusFunc == nil {
+		panic("RepositoryMock.GetProcessingStatusFunc: method is nil but Repository.GetProcessingStatus was just called")
+	}
+	callInfo := struct {
+		Ctx      context.Context
+		FileName string
+	}{
+		Ctx:      ctx,
+		FileName: fileName,
+	}
+	mock.lockGetProcessingStatus.Lock()
+	mock.calls.GetProcessingStatus = append(mock.calls.GetProcessingStatus, callInfo)
+	mock.lockGetProcessingStatus.Unlock()
+	return mock.GetProcessingStatusFunc(ctx, fileName)
+}
+
+// GetProcessingStatusCalls gets all the calls that were made to GetProcessingStatus.
+// Check the length with:
+//
+//	len(mockedRepository.GetProcessingStatusCalls())
+func (mock *RepositoryMock) GetProcessingStatusCalls() []struct {
+	Ctx      context.Context
+	FileName string
+} {
+	var calls []struct {
+		Ctx      context.Context
+		FileName string
+	}
+	mock.lockGetProcessingStatus.RLock()
+	calls = mock.calls.GetProcessingStatus
+	mock.lockGetProcessingStatus.RUnlock()
+	return calls
+}
+
 // InsertDataPoints calls InsertDataPointsFunc.
 func (mock *RepositoryMock) InsertDataPoints(ctx context.Context, rows []data.OHLCEntity) error {
 	if mock.InsertDataPointsFunc == nil {
@@ -128,5 +221,113 @@ func (mock *RepositoryMock) InsertDataPointsCalls() []struct {
 	mock.lockInsertDataPoints.RLock()
 	calls = mock.calls.InsertDataPoints
 	mock.lockInsertDataPoints.RUnlock()
+	return calls
+}
+
+// InsertProcessingStatus calls InsertProcessingStatusFunc.
+func (mock *RepositoryMock) InsertProcessingStatus(ctx context.Context, status data.ProcessingStatusEntity) error {
+	if mock.InsertProcessingStatusFunc == nil {
+		panic("RepositoryMock.InsertProcessingStatusFunc: method is nil but Repository.InsertProcessingStatus was just called")
+	}
+	callInfo := struct {
+		Ctx    context.Context
+		Status data.ProcessingStatusEntity
+	}{
+		Ctx:    ctx,
+		Status: status,
+	}
+	mock.lockInsertProcessingStatus.Lock()
+	mock.calls.InsertProcessingStatus = append(mock.calls.InsertProcessingStatus, callInfo)
+	mock.lockInsertProcessingStatus.Unlock()
+	return mock.InsertProcessingStatusFunc(ctx, status)
+}
+
+// InsertProcessingStatusCalls gets all the calls that were made to InsertProcessingStatus.
+// Check the length with:
+//
+//	len(mockedRepository.InsertProcessingStatusCalls())
+func (mock *RepositoryMock) InsertProcessingStatusCalls() []struct {
+	Ctx    context.Context
+	Status data.ProcessingStatusEntity
+} {
+	var calls []struct {
+		Ctx    context.Context
+		Status data.ProcessingStatusEntity
+	}
+	mock.lockInsertProcessingStatus.RLock()
+	calls = mock.calls.InsertProcessingStatus
+	mock.lockInsertProcessingStatus.RUnlock()
+	return calls
+}
+
+// RemoveStaleProcessingStatus calls RemoveStaleProcessingStatusFunc.
+func (mock *RepositoryMock) RemoveStaleProcessingStatus(ctx context.Context, staleTime time.Time) error {
+	if mock.RemoveStaleProcessingStatusFunc == nil {
+		panic("RepositoryMock.RemoveStaleProcessingStatusFunc: method is nil but Repository.RemoveStaleProcessingStatus was just called")
+	}
+	callInfo := struct {
+		Ctx       context.Context
+		StaleTime time.Time
+	}{
+		Ctx:       ctx,
+		StaleTime: staleTime,
+	}
+	mock.lockRemoveStaleProcessingStatus.Lock()
+	mock.calls.RemoveStaleProcessingStatus = append(mock.calls.RemoveStaleProcessingStatus, callInfo)
+	mock.lockRemoveStaleProcessingStatus.Unlock()
+	return mock.RemoveStaleProcessingStatusFunc(ctx, staleTime)
+}
+
+// RemoveStaleProcessingStatusCalls gets all the calls that were made to RemoveStaleProcessingStatus.
+// Check the length with:
+//
+//	len(mockedRepository.RemoveStaleProcessingStatusCalls())
+func (mock *RepositoryMock) RemoveStaleProcessingStatusCalls() []struct {
+	Ctx       context.Context
+	StaleTime time.Time
+} {
+	var calls []struct {
+		Ctx       context.Context
+		StaleTime time.Time
+	}
+	mock.lockRemoveStaleProcessingStatus.RLock()
+	calls = mock.calls.RemoveStaleProcessingStatus
+	mock.lockRemoveStaleProcessingStatus.RUnlock()
+	return calls
+}
+
+// UpdateProcessingStatus calls UpdateProcessingStatusFunc.
+func (mock *RepositoryMock) UpdateProcessingStatus(ctx context.Context, status data.ProcessingStatusEntity) error {
+	if mock.UpdateProcessingStatusFunc == nil {
+		panic("RepositoryMock.UpdateProcessingStatusFunc: method is nil but Repository.UpdateProcessingStatus was just called")
+	}
+	callInfo := struct {
+		Ctx    context.Context
+		Status data.ProcessingStatusEntity
+	}{
+		Ctx:    ctx,
+		Status: status,
+	}
+	mock.lockUpdateProcessingStatus.Lock()
+	mock.calls.UpdateProcessingStatus = append(mock.calls.UpdateProcessingStatus, callInfo)
+	mock.lockUpdateProcessingStatus.Unlock()
+	return mock.UpdateProcessingStatusFunc(ctx, status)
+}
+
+// UpdateProcessingStatusCalls gets all the calls that were made to UpdateProcessingStatus.
+// Check the length with:
+//
+//	len(mockedRepository.UpdateProcessingStatusCalls())
+func (mock *RepositoryMock) UpdateProcessingStatusCalls() []struct {
+	Ctx    context.Context
+	Status data.ProcessingStatusEntity
+} {
+	var calls []struct {
+		Ctx    context.Context
+		Status data.ProcessingStatusEntity
+	}
+	mock.lockUpdateProcessingStatus.RLock()
+	calls = mock.calls.UpdateProcessingStatus
+	mock.lockUpdateProcessingStatus.RUnlock()
 	return calls
 }

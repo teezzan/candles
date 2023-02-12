@@ -22,6 +22,9 @@ var _ Service = &ServiceMock{}
 //			CreateDataPointsFunc: func(ctx context.Context, dataPoints [][]string) error {
 //				panic("mock out the CreateDataPoints method")
 //			},
+//			DeleteStaleProcessingStatusFunc: func(ctx context.Context, days int) error {
+//				panic("mock out the DeleteStaleProcessingStatus method")
+//			},
 //			DownloadAndProcessCSVFunc: func(ctx context.Context, filename string) error {
 //				panic("mock out the DownloadAndProcessCSV method")
 //			},
@@ -34,6 +37,12 @@ var _ Service = &ServiceMock{}
 //			GetDataPointsFunc: func(ctx context.Context, payload data.GetOHLCRequest) ([]data.OHLCEntity, *int, error) {
 //				panic("mock out the GetDataPoints method")
 //			},
+//			GetProcessingStatusFunc: func(ctx context.Context, filename string) (*data.ProcessingStatusEntity, error) {
+//				panic("mock out the GetProcessingStatus method")
+//			},
+//			UpdateProcessingStatusFunc: func(ctx context.Context, filename string, status data.ProcessingStatus, err error) error {
+//				panic("mock out the UpdateProcessingStatus method")
+//			},
 //		}
 //
 //		// use mockedService in code that requires Service
@@ -43,6 +52,9 @@ var _ Service = &ServiceMock{}
 type ServiceMock struct {
 	// CreateDataPointsFunc mocks the CreateDataPoints method.
 	CreateDataPointsFunc func(ctx context.Context, dataPoints [][]string) error
+
+	// DeleteStaleProcessingStatusFunc mocks the DeleteStaleProcessingStatus method.
+	DeleteStaleProcessingStatusFunc func(ctx context.Context, days int) error
 
 	// DownloadAndProcessCSVFunc mocks the DownloadAndProcessCSV method.
 	DownloadAndProcessCSVFunc func(ctx context.Context, filename string) error
@@ -56,6 +68,12 @@ type ServiceMock struct {
 	// GetDataPointsFunc mocks the GetDataPoints method.
 	GetDataPointsFunc func(ctx context.Context, payload data.GetOHLCRequest) ([]data.OHLCEntity, *int, error)
 
+	// GetProcessingStatusFunc mocks the GetProcessingStatus method.
+	GetProcessingStatusFunc func(ctx context.Context, filename string) (*data.ProcessingStatusEntity, error)
+
+	// UpdateProcessingStatusFunc mocks the UpdateProcessingStatus method.
+	UpdateProcessingStatusFunc func(ctx context.Context, filename string, status data.ProcessingStatus, err error) error
+
 	// calls tracks calls to the methods.
 	calls struct {
 		// CreateDataPoints holds details about calls to the CreateDataPoints method.
@@ -64,6 +82,13 @@ type ServiceMock struct {
 			Ctx context.Context
 			// DataPoints is the dataPoints argument value.
 			DataPoints [][]string
+		}
+		// DeleteStaleProcessingStatus holds details about calls to the DeleteStaleProcessingStatus method.
+		DeleteStaleProcessingStatus []struct {
+			// Ctx is the ctx argument value.
+			Ctx context.Context
+			// Days is the days argument value.
+			Days int
 		}
 		// DownloadAndProcessCSV holds details about calls to the DownloadAndProcessCSV method.
 		DownloadAndProcessCSV []struct {
@@ -89,12 +114,33 @@ type ServiceMock struct {
 			// Payload is the payload argument value.
 			Payload data.GetOHLCRequest
 		}
+		// GetProcessingStatus holds details about calls to the GetProcessingStatus method.
+		GetProcessingStatus []struct {
+			// Ctx is the ctx argument value.
+			Ctx context.Context
+			// Filename is the filename argument value.
+			Filename string
+		}
+		// UpdateProcessingStatus holds details about calls to the UpdateProcessingStatus method.
+		UpdateProcessingStatus []struct {
+			// Ctx is the ctx argument value.
+			Ctx context.Context
+			// Filename is the filename argument value.
+			Filename string
+			// Status is the status argument value.
+			Status data.ProcessingStatus
+			// Err is the err argument value.
+			Err error
+		}
 	}
-	lockCreateDataPoints        sync.RWMutex
-	lockDownloadAndProcessCSV   sync.RWMutex
-	lockGeneratePreSignedURL    sync.RWMutex
-	lockGetAndProcessSQSMessage sync.RWMutex
-	lockGetDataPoints           sync.RWMutex
+	lockCreateDataPoints            sync.RWMutex
+	lockDeleteStaleProcessingStatus sync.RWMutex
+	lockDownloadAndProcessCSV       sync.RWMutex
+	lockGeneratePreSignedURL        sync.RWMutex
+	lockGetAndProcessSQSMessage     sync.RWMutex
+	lockGetDataPoints               sync.RWMutex
+	lockGetProcessingStatus         sync.RWMutex
+	lockUpdateProcessingStatus      sync.RWMutex
 }
 
 // CreateDataPoints calls CreateDataPointsFunc.
@@ -130,6 +176,42 @@ func (mock *ServiceMock) CreateDataPointsCalls() []struct {
 	mock.lockCreateDataPoints.RLock()
 	calls = mock.calls.CreateDataPoints
 	mock.lockCreateDataPoints.RUnlock()
+	return calls
+}
+
+// DeleteStaleProcessingStatus calls DeleteStaleProcessingStatusFunc.
+func (mock *ServiceMock) DeleteStaleProcessingStatus(ctx context.Context, days int) error {
+	if mock.DeleteStaleProcessingStatusFunc == nil {
+		panic("ServiceMock.DeleteStaleProcessingStatusFunc: method is nil but Service.DeleteStaleProcessingStatus was just called")
+	}
+	callInfo := struct {
+		Ctx  context.Context
+		Days int
+	}{
+		Ctx:  ctx,
+		Days: days,
+	}
+	mock.lockDeleteStaleProcessingStatus.Lock()
+	mock.calls.DeleteStaleProcessingStatus = append(mock.calls.DeleteStaleProcessingStatus, callInfo)
+	mock.lockDeleteStaleProcessingStatus.Unlock()
+	return mock.DeleteStaleProcessingStatusFunc(ctx, days)
+}
+
+// DeleteStaleProcessingStatusCalls gets all the calls that were made to DeleteStaleProcessingStatus.
+// Check the length with:
+//
+//	len(mockedService.DeleteStaleProcessingStatusCalls())
+func (mock *ServiceMock) DeleteStaleProcessingStatusCalls() []struct {
+	Ctx  context.Context
+	Days int
+} {
+	var calls []struct {
+		Ctx  context.Context
+		Days int
+	}
+	mock.lockDeleteStaleProcessingStatus.RLock()
+	calls = mock.calls.DeleteStaleProcessingStatus
+	mock.lockDeleteStaleProcessingStatus.RUnlock()
 	return calls
 }
 
@@ -266,5 +348,85 @@ func (mock *ServiceMock) GetDataPointsCalls() []struct {
 	mock.lockGetDataPoints.RLock()
 	calls = mock.calls.GetDataPoints
 	mock.lockGetDataPoints.RUnlock()
+	return calls
+}
+
+// GetProcessingStatus calls GetProcessingStatusFunc.
+func (mock *ServiceMock) GetProcessingStatus(ctx context.Context, filename string) (*data.ProcessingStatusEntity, error) {
+	if mock.GetProcessingStatusFunc == nil {
+		panic("ServiceMock.GetProcessingStatusFunc: method is nil but Service.GetProcessingStatus was just called")
+	}
+	callInfo := struct {
+		Ctx      context.Context
+		Filename string
+	}{
+		Ctx:      ctx,
+		Filename: filename,
+	}
+	mock.lockGetProcessingStatus.Lock()
+	mock.calls.GetProcessingStatus = append(mock.calls.GetProcessingStatus, callInfo)
+	mock.lockGetProcessingStatus.Unlock()
+	return mock.GetProcessingStatusFunc(ctx, filename)
+}
+
+// GetProcessingStatusCalls gets all the calls that were made to GetProcessingStatus.
+// Check the length with:
+//
+//	len(mockedService.GetProcessingStatusCalls())
+func (mock *ServiceMock) GetProcessingStatusCalls() []struct {
+	Ctx      context.Context
+	Filename string
+} {
+	var calls []struct {
+		Ctx      context.Context
+		Filename string
+	}
+	mock.lockGetProcessingStatus.RLock()
+	calls = mock.calls.GetProcessingStatus
+	mock.lockGetProcessingStatus.RUnlock()
+	return calls
+}
+
+// UpdateProcessingStatus calls UpdateProcessingStatusFunc.
+func (mock *ServiceMock) UpdateProcessingStatus(ctx context.Context, filename string, status data.ProcessingStatus, err error) error {
+	if mock.UpdateProcessingStatusFunc == nil {
+		panic("ServiceMock.UpdateProcessingStatusFunc: method is nil but Service.UpdateProcessingStatus was just called")
+	}
+	callInfo := struct {
+		Ctx      context.Context
+		Filename string
+		Status   data.ProcessingStatus
+		Err      error
+	}{
+		Ctx:      ctx,
+		Filename: filename,
+		Status:   status,
+		Err:      err,
+	}
+	mock.lockUpdateProcessingStatus.Lock()
+	mock.calls.UpdateProcessingStatus = append(mock.calls.UpdateProcessingStatus, callInfo)
+	mock.lockUpdateProcessingStatus.Unlock()
+	return mock.UpdateProcessingStatusFunc(ctx, filename, status, err)
+}
+
+// UpdateProcessingStatusCalls gets all the calls that were made to UpdateProcessingStatus.
+// Check the length with:
+//
+//	len(mockedService.UpdateProcessingStatusCalls())
+func (mock *ServiceMock) UpdateProcessingStatusCalls() []struct {
+	Ctx      context.Context
+	Filename string
+	Status   data.ProcessingStatus
+	Err      error
+} {
+	var calls []struct {
+		Ctx      context.Context
+		Filename string
+		Status   data.ProcessingStatus
+		Err      error
+	}
+	mock.lockUpdateProcessingStatus.RLock()
+	calls = mock.calls.UpdateProcessingStatus
+	mock.lockUpdateProcessingStatus.RUnlock()
 	return calls
 }

@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/jmoiron/sqlx"
-	E "github.com/teezzan/candles/internal/errors"
 	"github.com/teezzan/candles/internal/controller/ohlc/data"
+	E "github.com/teezzan/candles/internal/errors"
 )
 
 var _ Repository = (*MySQLRepository)(nil)
@@ -93,6 +93,7 @@ func (r *MySQLRepository) GetProcessingStatus(ctx context.Context, fileName stri
 	SELECT
 		file_name,
 		status,
+		error,
 		created_at,
 		updated_at
 	FROM
@@ -132,7 +133,7 @@ func (r *MySQLRepository) InsertProcessingStatus(ctx context.Context, status dat
 	}
 	return nil
 }
-	
+
 // UpdateProcessingStatus updates the status of a file in the process_status table of the MySQL repository.
 // It uses NamedExecContext to bind the values in the sql statement.
 // It returns an error if it failed to update the status of the file in the table.
@@ -141,6 +142,7 @@ func (r *MySQLRepository) UpdateProcessingStatus(ctx context.Context, status dat
 	UPDATE process_status
 	SET
 		status = :status,
+		error = :error,
 	WHERE
 		file_name = :file_name
 	`

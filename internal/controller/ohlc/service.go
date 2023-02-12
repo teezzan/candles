@@ -16,4 +16,7 @@ type Service interface {
 	GeneratePreSignedURL(ctx context.Context) (*data.GeneratePresignedURLResponse, error)
 	GetAndProcessSQSMessage(ctx context.Context) error
 	DownloadAndProcessCSV(ctx context.Context, filename string) error
+	UpdateProcessingStatus(ctx context.Context, filename string, status data.ProcessingStatus, err error) error
+	DeleteStaleProcessingStatus(ctx context.Context, days int) error
+	GetProcessingStatus(ctx context.Context, filename string) (*data.ProcessingStatusEntity, error)
 }
