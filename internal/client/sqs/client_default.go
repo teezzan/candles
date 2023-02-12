@@ -6,7 +6,7 @@ import (
 
 	s3Config "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
-	"github.com/teezzan/ohlc/internal/config"
+	"github.com/teezzan/candles/internal/config"
 	"github.com/tidwall/gjson"
 
 	"go.uber.org/zap"
@@ -53,7 +53,10 @@ func NewClient(
 	}, nil
 }
 
-// GetFilenamesFromMessages listens for messages on the queue.
+// GetFilenamesFromMessages retrieves filenames from messages stored in an AWS SQS queue.
+// It receives messages from the queue by polling and returns an array of filenames.
+// If any error occurs while receiving messages or deleting messages from the queue,
+// the function returns an error.
 func (c *DefaultClient) GetFilenamesFromMessages(ctx context.Context) ([]string, error) {
 	// Receive messages from queue by polling
 	result, err := c.sqsClient.ReceiveMessage(ctx, &sqs.ReceiveMessageInput{
@@ -86,6 +89,44 @@ func (c *DefaultClient) GetFilenamesFromMessages(ctx context.Context) ([]string,
 	return filenames, nil
 }
 
+// extractKeyFromMessage extracts the file keys from the S3 records in a message.
+// The message is expected to be in JSON format and contains information about the S3 operations,
+// such as a PutObject or DeleteObject. The function returns the file keys present in the message.
+//
+// Example:
+//
+//	m := `{
+//	  "Records": [
+//	    {
+//	      "eventVersion": "2.1",
+//	      "eventSource": "aws:s3",
+//	      "s3": {
+//	        "bucket": {
+//	          "name": "my-bucket"
+//	        },
+//	        "object": {
+//	          "key": "file1.txt"
+//	        }
+//	      }
+//	    },
+//	    {
+//	      "eventVersion": "2.1",
+//	      "eventSource": "aws:s3",
+//	      "s3": {
+//	        "bucket": {
+//	          "name": "my-bucket"
+//	        },
+//	        "object": {
+//	          "key": "file2.txt"
+//	        }
+//	      }
+//	    }
+//	  ]
+//	}`
+//	keys, err := extractKeyFromMessage(m)
+//	fmt.Println(keys, err)
+//
+// Output: [file1.txt file2.txt] <nil>
 func extractKeyFromMessage(m string) ([]string, error) {
 	var keys []string
 	n := gjson.Get(m, "Records.#")
@@ -107,7 +148,9 @@ func extractKeyFromMessage(m string) ([]string, error) {
 	return keys, nil
 }
 
-// DeleteMessages deletes messages from the queue.
+// DeleteMessages deletes the specified messages from the SQS queue.
+//
+// It takes a context and a slice of message handles as input and returns an error if any of the delete operations fail.
 func (c *DefaultClient) DeleteMessages(ctx context.Context, messageHandles []string) error {
 	for _, m := range messageHandles {
 		_, err := c.sqsClient.DeleteMessage(ctx, &sqs.DeleteMessageInput{

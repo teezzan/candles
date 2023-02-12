@@ -4,7 +4,7 @@ package ohlc
 import (
 	"context"
 
-	"github.com/teezzan/ohlc/internal/controller/ohlc/data"
+	"github.com/teezzan/candles/internal/controller/ohlc/data"
 )
 
 //go:generate moq -rm -out service_mock.go . Service

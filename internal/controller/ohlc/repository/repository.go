@@ -3,8 +3,9 @@ package repository
 import (
 	"context"
 
-	"github.com/teezzan/ohlc/internal/controller/ohlc/data"
+	"github.com/teezzan/candles/internal/controller/ohlc/data"
 )
+
 //go:generate moq -rm -out repository_mock.go . Repository
 
 // Repository defines the period repository.

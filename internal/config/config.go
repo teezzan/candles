@@ -1,6 +1,6 @@
 package config
 
-import "github.com/teezzan/ohlc/internal/util"
+import "github.com/teezzan/candles/internal/util"
 
 type Config struct {
 	Database                  DatabaseConfig

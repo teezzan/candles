@@ -5,7 +5,7 @@ package ohlc
 
 import (
 	"context"
-	"github.com/teezzan/ohlc/internal/controller/ohlc/data"
+	"github.com/teezzan/candles/internal/controller/ohlc/data"
 	"sync"
 )
 

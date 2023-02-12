@@ -2,7 +2,7 @@ package router
 
 import (
 	"github.com/gin-gonic/gin"
-	ohlc "github.com/teezzan/ohlc/internal/controller/ohlc"
+	ohlc "github.com/teezzan/candles/internal/controller/ohlc"
 )
 
 type Router struct {

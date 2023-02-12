@@ -3,7 +3,7 @@ package data
 import (
 	"time"
 
-	"github.com/teezzan/ohlc/internal/null"
+	"github.com/teezzan/candles/internal/null"
 )
 
 // Project defines the ohlc project DTO

@@ -4,8 +4,8 @@ import (
 	"encoding/csv"
 
 	"github.com/gin-gonic/gin"
-	"github.com/teezzan/ohlc/internal/controller/ohlc/data"
-	"github.com/teezzan/ohlc/internal/httputil"
+	"github.com/teezzan/candles/internal/controller/ohlc/data"
+	"github.com/teezzan/candles/internal/httputil"
 	"go.uber.org/zap"
 )
 
@@ -111,6 +111,7 @@ func (h *HTTPHandler) getOHLCDataHandler(c *gin.Context) error {
 }
 
 // generatePreSignedURLHandler generates a pre-signed URL for the given file name.
+//
 //	@Summary		Generates a pre-signed URL for the given file name for uploading on S3
 //	@Description	The endpoint generates a pre-signed URL for the given file name for uploading on S3, It supports huge files
 //	@Success		200	{object}	data.GeneratePresignedURLResponse

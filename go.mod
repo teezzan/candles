@@ -1,4 +1,4 @@
-module github.com/teezzan/ohlc
+module github.com/teezzan/candles
 
 go 1.19
 

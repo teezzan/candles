@@ -9,14 +9,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/teezzan/ohlc/internal/client/s3"
-	"github.com/teezzan/ohlc/internal/client/sqs"
-	"github.com/teezzan/ohlc/internal/config"
-	"github.com/teezzan/ohlc/internal/controller/ohlc/data"
-	"github.com/teezzan/ohlc/internal/controller/ohlc/repository"
-	E "github.com/teezzan/ohlc/internal/errors"
-	"github.com/teezzan/ohlc/internal/null"
-	"github.com/teezzan/ohlc/internal/util"
+	"github.com/teezzan/candles/internal/client/s3"
+	"github.com/teezzan/candles/internal/client/sqs"
+	"github.com/teezzan/candles/internal/config"
+	"github.com/teezzan/candles/internal/controller/ohlc/data"
+	"github.com/teezzan/candles/internal/controller/ohlc/repository"
+	E "github.com/teezzan/candles/internal/errors"
+	"github.com/teezzan/candles/internal/null"
+	"github.com/teezzan/candles/internal/util"
 	"go.uber.org/zap"
 )
 
@@ -48,7 +48,9 @@ func NewService(
 	}
 }
 
-// CreateDataPoints creates OHLC points
+// CreateDataPoints creates OHLCEntities from a 2D array of strings and inserts them into the repository.
+// The first row is expected to contain the header. If a row is incomplete, it can either be discarded
+// or return an error based on the value of `discardInCompleteRow`.
 func (s *DefaultService) CreateDataPoints(ctx context.Context, dataPoints [][]string) error {
 	if len(dataPoints) == 0 {
 		return nil
@@ -81,6 +83,7 @@ func (s *DefaultService) CreateDataPoints(ctx context.Context, dataPoints [][]st
 	return nil
 }
 
+// getFieldTitleIndex returns a `data.OHLCFieldIndexes` containing the index positions of OHLC and Unix fields in a given header
 func getFieldTitleIndex(header []string) data.OHLCFieldIndexes {
 	v := data.DefaultOHLCFieldIndexes
 	for i, field := range header {
@@ -108,6 +111,9 @@ func getFieldTitleIndex(header []string) data.OHLCFieldIndexes {
 	return v
 }
 
+// extractDataPoint takes in a string slice representing a row from a CSV file and a data.OHLCFieldIndexes object,
+// parses the values from the row and returns a pointer to a data.OHLCEntity object if successful,
+// or an error if the row does not contain the necessary data.
 func extractDataPoint(row []string, fieldIndexes data.OHLCFieldIndexes) (*data.OHLCEntity, error) {
 	var d data.OHLCEntity
 
@@ -172,7 +178,11 @@ func extractDataPoint(row []string, fieldIndexes data.OHLCFieldIndexes) (*data.O
 	return &d, nil
 }
 
-// GetDataPoints returns OHLC points for a given symbol and time range
+// GetDataPoints returns a slice of OHLCEntity representing the requested open-high-low-close data points for a specific symbol.
+// It validates the inputs such as symbol, start and end time, page size and page number and returns an error if they are not valid.
+// The page size and page number are optional and default to defaultDataPointLimit and 1 respectively if not provided.
+// The end time is also optional and defaults to the current time if not provided.
+// The result is based on the data obtained from the repository.
 func (s *DefaultService) GetDataPoints(ctx context.Context, payload data.GetOHLCRequest) ([]data.OHLCEntity, *int, error) {
 	if payload.Symbol == "" {
 		return nil, nil, E.NewErrInvalidArgument("symbol is required")
@@ -207,7 +217,8 @@ func (s *DefaultService) GetDataPoints(ctx context.Context, payload data.GetOHLC
 	return data, payload.PageNumber.AsRef(), nil
 }
 
-// GeneratePreSignedURL generates a pre-signed URL for a given bucket and object
+// GeneratePreSignedURL generates a presigned URL for uploading a file to S3.
+// It returns the generated URL and filename.
 func (s *DefaultService) GeneratePreSignedURL(ctx context.Context) (*data.GeneratePresignedURLResponse, error) {
 	filename := fmt.Sprintf("%s.csv", util.GenerateUUID())
 	url, err := s.s3Client.GeneratePresignedURL(ctx, filename)
@@ -221,7 +232,9 @@ func (s *DefaultService) GeneratePreSignedURL(ctx context.Context) (*data.Genera
 	}, nil
 }
 
-// GetAndProcessSQSMessage gets to SQS queue and processes the message
+// GetAndProcessSQSMessage retrieves filenames from SQS messages, logs them and creates Goroutines
+// to process the files in parallel using the DownloadAndProcessCSV method.
+// It returns an error if any occurred during the retrieval of filenames from SQS messages.
 func (s *DefaultService) GetAndProcessSQSMessage(ctx context.Context) error {
 	filenames, err := s.sqsClient.GetFilenamesFromMessages(ctx)
 	s.logger.Info("filenames are", zap.Any("filenames", filenames))
@@ -238,7 +251,8 @@ func (s *DefaultService) GetAndProcessSQSMessage(ctx context.Context) error {
 	return nil
 }
 
-// DownloadAndProcessCSV downloads the CSV file from S3 and processes it
+// DownloadAndProcessCSV retrieves a large CSV object from S3 and processes the data to create data points.
+// If an error occurs while downloading the object from S3 or processing the data, it will be returned.
 func (s *DefaultService) DownloadAndProcessCSV(ctx context.Context, filename string) error {
 	s3FileData, err := s.s3Client.DownloadLargeObject(ctx, filename)
 	if err != nil {

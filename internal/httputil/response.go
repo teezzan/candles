@@ -3,7 +3,7 @@ package httputil
 import (
 	"net/http"
 
-	E "github.com/teezzan/ohlc/internal/errors"
+	E "github.com/teezzan/candles/internal/errors"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"

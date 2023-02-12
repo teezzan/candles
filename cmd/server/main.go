@@ -7,13 +7,13 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/robfig/cron/v3"
-	"github.com/teezzan/ohlc/internal/client/s3"
-	"github.com/teezzan/ohlc/internal/client/sqs"
-	"github.com/teezzan/ohlc/internal/config"
-	ohlc "github.com/teezzan/ohlc/internal/controller/ohlc"
-	ohlcRepository "github.com/teezzan/ohlc/internal/controller/ohlc/repository"
-	"github.com/teezzan/ohlc/internal/database"
-	"github.com/teezzan/ohlc/internal/router"
+	"github.com/teezzan/candles/internal/client/s3"
+	"github.com/teezzan/candles/internal/client/sqs"
+	"github.com/teezzan/candles/internal/config"
+	ohlc "github.com/teezzan/candles/internal/controller/ohlc"
+	ohlcRepository "github.com/teezzan/candles/internal/controller/ohlc/repository"
+	"github.com/teezzan/candles/internal/database"
+	"github.com/teezzan/candles/internal/router"
 	"go.uber.org/zap"
 )
 

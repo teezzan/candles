@@ -8,13 +8,13 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/teezzan/ohlc/internal/client/s3"
-	"github.com/teezzan/ohlc/internal/client/sqs"
-	"github.com/teezzan/ohlc/internal/config"
-	"github.com/teezzan/ohlc/internal/controller/ohlc/data"
-	"github.com/teezzan/ohlc/internal/controller/ohlc/repository"
-	"github.com/teezzan/ohlc/internal/null"
-	"github.com/teezzan/ohlc/internal/util"
+	"github.com/teezzan/candles/internal/client/s3"
+	"github.com/teezzan/candles/internal/client/sqs"
+	"github.com/teezzan/candles/internal/config"
+	"github.com/teezzan/candles/internal/controller/ohlc/data"
+	"github.com/teezzan/candles/internal/controller/ohlc/repository"
+	"github.com/teezzan/candles/internal/null"
+	"github.com/teezzan/candles/internal/util"
 	"go.uber.org/zap"
 )
 
@@ -493,7 +493,7 @@ func TestDefaultService_GetDataPoints(t *testing.T) {
 			wantErr:        false,
 		},
 		{
-			name: "invalid payload without Symbol",
+			name:       "invalid payload without Symbol",
 			repository: repository.RepositoryMock{},
 			payload: data.GetOHLCRequest{
 				StartTime:  time.Now().Add(-time.Hour).Unix(),
@@ -505,10 +505,10 @@ func TestDefaultService_GetDataPoints(t *testing.T) {
 			wantErr:        true,
 		},
 		{
-			name: "invalid payload without StartTime",
+			name:       "invalid payload without StartTime",
 			repository: repository.RepositoryMock{},
 			payload: data.GetOHLCRequest{
-				Symbol:    "HAKO",
+				Symbol:     "HAKO",
 				EndTime:    null.NewInt64(time.Now().Unix()),
 				PageNumber: null.NewInt(1),
 				PageSize:   null.NewInt(10),
@@ -517,10 +517,10 @@ func TestDefaultService_GetDataPoints(t *testing.T) {
 			wantErr:        true,
 		},
 		{
-			name: "invalid payload with negative page number",
+			name:       "invalid payload with negative page number",
 			repository: repository.RepositoryMock{},
 			payload: data.GetOHLCRequest{
-				Symbol:    "HAKO",
+				Symbol:     "HAKO",
 				StartTime:  time.Now().Add(-time.Hour).Unix(),
 				EndTime:    null.NewInt64(time.Now().Unix()),
 				PageNumber: null.NewInt(-1),
@@ -530,10 +530,10 @@ func TestDefaultService_GetDataPoints(t *testing.T) {
 			wantErr:        true,
 		},
 		{
-			name: "invalid payload with negative page size",
+			name:       "invalid payload with negative page size",
 			repository: repository.RepositoryMock{},
 			payload: data.GetOHLCRequest{
-				Symbol:    "HAKO",
+				Symbol:     "HAKO",
 				StartTime:  time.Now().Add(-time.Hour).Unix(),
 				EndTime:    null.NewInt64(time.Now().Unix()),
 				PageNumber: null.NewInt(1),
@@ -560,8 +560,8 @@ func TestDefaultService_GetDataPoints(t *testing.T) {
 				},
 			},
 			payload: data.GetOHLCRequest{
-				Symbol:     "HAKO",
-				StartTime:  time.Now().Add(-time.Hour).Unix(),
+				Symbol:    "HAKO",
+				StartTime: time.Now().Add(-time.Hour).Unix(),
 			},
 			wantPageNumber: util.IntPtr(1),
 			wantErr:        false,

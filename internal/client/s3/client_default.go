@@ -9,7 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/feature/s3/manager"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/teezzan/ohlc/internal/config"
+	"github.com/teezzan/candles/internal/config"
 
 	"go.uber.org/zap"
 )
@@ -50,7 +50,8 @@ func NewClient(
 	}, nil
 }
 
-// ListBuckets lists all the buckets.
+// ListBuckets lists all the available buckets in the S3 client
+// It prints the name of each bucket to the standard output.
 func (c *DefaultClient) ListBuckets(ctx context.Context) error {
 	result, err := c.s3Client.ListBuckets(ctx, &s3.ListBucketsInput{})
 	if err != nil {
@@ -62,7 +63,8 @@ func (c *DefaultClient) ListBuckets(ctx context.Context) error {
 	return nil
 }
 
-// GeneratePresignedURL generates a presigned URL for the given bucket and key.
+// GeneratePresignedURL returns a presigned URL for the provided object key in the specified bucket.
+// The URL will expire after the time specified in the `presignURLExpiryTime` field.
 func (c *DefaultClient) GeneratePresignedURL(ctx context.Context, key string) (string, error) {
 	req, err := c.presignClient.PresignPutObject(ctx, &s3.PutObjectInput{
 		Bucket: aws.String(c.bucketName),
@@ -77,9 +79,9 @@ func (c *DefaultClient) GeneratePresignedURL(ctx context.Context, key string) (s
 	return req.URL, nil
 }
 
-// DownloadLargeObject uses a download manager to download an object from a bucket.
-// The download manager gets the data in parts and writes them to a buffer until all of
-// the data has been downloaded.
+// DownloadLargeObject downloads a large object from an Amazon S3 bucket. It downloads the object
+// in parts of 10 MiBs and returns the object as a slice of bytes. The object key is passed as a
+// parameter to the function. The function returns an error if the download fails.
 func (c *DefaultClient) DownloadLargeObject(ctx context.Context, objectKey string) ([]byte, error) {
 	var partMiBs int64 = 10
 	downloader := manager.NewDownloader(c.s3Client, func(d *manager.Downloader) {
