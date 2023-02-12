@@ -1,4 +1,3 @@
-basePath: /
 definitions:
   github_com_teezzan_candles_internal_controller_ohlc_data.GeneratePresignedURLResponse:
     properties:
@@ -59,7 +58,6 @@ definitions:
         description: Valid is true if String is not NULL
         type: boolean
     type: object
-host: https://candles.onrender.com
 info:
   contact: {}
   description: This is API specification for Candels, a OHLC data API platform.

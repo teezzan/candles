@@ -2,6 +2,7 @@ package router
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/teezzan/candles/docs"
 	ohlc "github.com/teezzan/candles/internal/controller/ohlc"
 )
 
@@ -26,8 +27,10 @@ func New(
 // SetupRouter implements the gin.Server interface.
 func (r *Router) SetupRouter(router *gin.Engine) error {
 	r.router = router
-	r.router.Static("/docs", "./docs")
 	r.setupRoutes()
+	r.router.Static("/docs", "./docs")
+	docs.SwaggerInfo.Version = "1.0"
+	docs.SwaggerInfo.Schemes = []string{"https"}
 
 	return nil
 }
