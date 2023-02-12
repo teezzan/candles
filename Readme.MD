@@ -126,6 +126,9 @@ The API reference and documentation are available in swagger format on [Render](
 
 ![docs](./docs/openAPI.png)
 
+## Possible Improvements
+- Add caching to the API
+- Implement a way for users to know the status of their uploaded files
 ## Authors
 
 **[Taiwo Yusuf](https://github.com/teezzan/)**
