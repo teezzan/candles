@@ -10,6 +10,10 @@ Candles is a highly scalable OHLC API with the following features:
 - Easy setup
 - Documentation with OpenAPI (https://candles.onrender.com/docs/)
 
+## Architecture
+The system has a simple but scalable architecture. It leverages AWS S3 and SQS to process large CSV files in the background. The system is also designed to be highly available and fault tolerant. Below is the architecture diagram.
+
+![Architecture](./docs/arch.jpg)
 ## Deployment
 
 This application can be deployed locally in two ways:
