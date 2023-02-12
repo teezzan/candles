@@ -82,7 +82,7 @@ Foremost, you have to clone this repository and install all the dependencies wit
 ```bash
 git clone https://github.com/teezzan/candles.git
 cd candles
-go mod download
+go get ./...
 make deps
 make migrations-up
 ```
