@@ -92,7 +92,7 @@ To deploy the application locally, follow these steps:
 - Clone the repository: `git clone https://github.com/teezzan/candles.git`
 - Navigate to the project directory: `cd candles`
 - Install dependencies: `go get ./... && make deps`
-- Create the database: `make migrations-up`
+- Run the migrations: `make migrations-up`
 - Start the local server: `make serve`
 
 Note: The database name specified in DB_NAME must be created manually.
